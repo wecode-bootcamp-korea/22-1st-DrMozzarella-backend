@@ -68,5 +68,5 @@ class Nutrition(models.Model):
     iron                = models.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
-        db_tables = 'nutritions'
+        db_table = 'nutritions'
 
