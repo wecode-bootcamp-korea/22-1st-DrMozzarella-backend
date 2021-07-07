@@ -1,7 +1,7 @@
 from django.db import models
 
 class Comment(models.Model):
-    account    = models.ForeignKey('accounts.Account', on_delete=models.SET_NULL)
+    account    = models.ForeignKey('accounts.Account', on_delete=models.SET_NULL, null=True)
     product    = models.ForeignKey('products.Product', on_delete=models.CASCADE)
     review     = models.TextField()
     score      = models.DecimalField(max_digits=2, decimal_places=1)
@@ -15,7 +15,7 @@ class Comment(models.Model):
         db_table = 'comments'
 
 class CommentLike(models.Model):
-    account = models.ForeignKey('accounts.Account', on_delete=models.SET_NULL)
+    account = models.ForeignKey('accounts.Account', on_delete=models.SET_NULL, null=True)
     comment = models.ForeignKey('Comment', on_delete=models.CASCADE)
     flag    = models.BooleanField()
 

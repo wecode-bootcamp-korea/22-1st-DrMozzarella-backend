@@ -10,7 +10,7 @@ class Cart(models.Model):
         db_table = 'carts'
 
 class Order(models.Model):
-    account      = models.ForeignKey('accounts.Account', on_delete=models.SET_NULL)
+    account      = models.ForeignKey('accounts.Account', on_delete=models.SET_NULL, null=True)
     ordered_at   = models.DateTimeField(auto_now_add=True)
     order_number = models.CharField(max_length=36)
     order_status = models.ForeignKey('OrderStatus', on_delete=models.CASCADE)
