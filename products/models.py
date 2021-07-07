@@ -11,7 +11,7 @@ class Product(models.Model):
     description_image_url = models.URLField()
     category              = models.ManyToManyField('Category', through='ProductCategory')
     status                = models.BooleanField()
-    nutrition             = models.ForeignKey('Nutrition', on_delete=models.SET_NULL)
+    nutrition             = models.ForeignKey('Nutrition', on_delete=models.SET_NULL, null=True)
 
     class Meta:
         db_table = 'products'
