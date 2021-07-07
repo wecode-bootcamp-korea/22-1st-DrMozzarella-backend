@@ -1,16 +1,16 @@
 from django.db import models
 
 class Cart(models.Model):
-    account  = models.ForeignKey('accounts.Account', on_delete=models.CASCADE)
-    option   = models.ForeignKey('products.Option', on_delete=models.CASCADE)
-    quantity = models.IntegerField()
-    added_at = models.DateTimeField(auto_now_add=True)
+    account    = models.ForeignKey('accounts.Account', on_delete=models.CASCADE)
+    option     = models.ForeignKey('products.Option', on_delete=models.CASCADE)
+    quantity   = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         db_table = 'carts'
 
 class Order(models.Model):
-    account      = models.ForeignKey('accounts.Account', on_delete=models.CASCADE)
+    account      = models.ForeignKey('accounts.Account', on_delete=models.SET_NULL)
     ordered_at   = models.DateTimeField(auto_now_add=True)
     order_number = models.CharField(max_length=36)
     order_status = models.ForeignKey('OrderStatus', on_delete=models.CASCADE)
@@ -38,4 +38,3 @@ class OrderStatus(models.Model):
 
     class Meta:
         db_table = 'order_status'
-

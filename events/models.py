@@ -17,4 +17,3 @@ class CategoryEvent(models.Model):
 
     class Meta:
         db_table = 'category_events'
-

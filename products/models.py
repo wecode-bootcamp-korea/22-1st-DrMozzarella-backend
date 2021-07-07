@@ -1,15 +1,15 @@
 from django.db import models
 
 class Product(models.Model):
-    name            = models.CharField(max_length=50)
-    description     = models.TextField()
-    nutrition       = models.ForeignKey('Nutrition', on_delete=models.CASCADE)
-    sales           = models.IntegerField()
-    stocks          = models.IntegerField()
-    score           = models.DecimalField(max_digits=2, decimal_places=1)
-    thumbnail_1_url = models.URLField()
-    thumbnail_2_url = models.URLField()
-    category        = models.ManyToManyField('Category', through='ProductCategory')
+    name                = models.CharField(max_length=50)
+    description         = models.TextField()
+    sales               = models.IntegerField()
+    stocks              = models.IntegerField()
+    score               = models.DecimalField(max_digits=2, decimal_places=1)
+    thumbnail_image_url = models.URLField()
+    hover_image_url     = models.URLField()
+    category            = models.ManyToManyField('Category', through='ProductCategory')
+    status              = models.BooleanField()
 
     class Meta:
         db_table = 'products'
@@ -52,6 +52,7 @@ class Option(models.Model):
         db_table = 'options'
 
 class Nutrition(models.Model):
+    product             = models.ForeignKey('Product', on_delete=models.CASCADE)
     calories            = models.IntegerField()
     total_fat           = models.IntegerField()
     saturated_fat       = models.IntegerField()
@@ -69,4 +70,3 @@ class Nutrition(models.Model):
 
     class Meta:
         db_table = 'nutritions'
-
