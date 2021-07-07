@@ -10,7 +10,7 @@ class Product(models.Model):
     hover_image_url       = models.URLField(max_length=500)
     description_image_url = models.URLField(max_length=500)
     category              = models.ManyToManyField('Category', through='ProductCategory')
-    status                = models.BooleanField()
+    status                = models.BooleanField(default=True)
     nutrition             = models.ForeignKey('Nutrition', on_delete=models.SET_NULL, null=True)
 
     class Meta:
