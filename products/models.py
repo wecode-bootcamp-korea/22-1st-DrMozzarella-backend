@@ -1,15 +1,17 @@
 from django.db import models
 
 class Product(models.Model):
-    name                = models.CharField(max_length=50)
-    description         = models.TextField()
-    sales               = models.IntegerField()
-    stocks              = models.IntegerField()
-    score               = models.DecimalField(max_digits=2, decimal_places=1)
-    thumbnail_image_url = models.URLField()
-    hover_image_url     = models.URLField()
-    category            = models.ManyToManyField('Category', through='ProductCategory')
-    status              = models.BooleanField()
+    name                  = models.CharField(max_length=50)
+    description           = models.TextField()
+    sales                 = models.IntegerField()
+    stocks                = models.IntegerField()
+    score                 = models.DecimalField(max_digits=2, decimal_places=1)
+    thumbnail_image_url   = models.URLField()
+    hover_image_url       = models.URLField()
+    description_image_url = models.URLField()
+    category              = models.ManyToManyField('Category', through='ProductCategory')
+    status                = models.BooleanField()
+    nutrition             = models.ForeignKey('Nutrition', on_delete=models.SET_NULL)
 
     class Meta:
         db_table = 'products'
@@ -52,7 +54,6 @@ class Option(models.Model):
         db_table = 'options'
 
 class Nutrition(models.Model):
-    product             = models.ForeignKey('Product', on_delete=models.CASCADE)
     calories            = models.IntegerField()
     total_fat           = models.IntegerField()
     saturated_fat       = models.IntegerField()
@@ -63,10 +64,10 @@ class Nutrition(models.Model):
     dietary_fiber       = models.IntegerField()
     sugars              = models.IntegerField()
     protein             = models.IntegerField()
-    vitamin_a           = models.DecimalField(max_digits=10, decimal_places=2)
-    vitamin_c           = models.DecimalField(max_digits=10, decimal_places=2)
-    calcium             = models.DecimalField(max_digits=10, decimal_places=2)
-    iron                = models.DecimalField(max_digits=10, decimal_places=2)
+    vitamin_a           = models.IntegerField()
+    vitamin_c           = models.IntegerField()
+    calcium             = models.IntegerField()
+    iron                = models.IntegerField()
 
     class Meta:
         db_table = 'nutritions'
