@@ -1,28 +1,26 @@
 import json, re, bcrypt, jwt
 
-from django.http import JsonResponse
+from django.http  import JsonResponse
 from django.views import View
 
 from accounts.models import Account
-
-from my_settings import SECRET_KEY
-
+from my_settings     import SECRET_KEY
 
 class SignupView(View):
     def post(self, request):
         data = json.loads(request.body)
 
-        EMAIL_REGES        = "^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
-        PASSWORD_REGES     = '[A-Za-z0-9@#$%^&+=]{8,}'
+        EMAIL_REGES    = "^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+        PASSWORD_REGES = '[A-Za-z0-9@#$%^&+=]{8,}'
         
         if not re.search(EMAIL_REGES, data["email"]):
-            return JsonResponse ({"MESSAGE":"잘못된 이메일 형식입니다."}, status = 400)
+            return JsonResponse ({"MESSAGE":"INVALID EMAIL"}, status = 400)
         
         if not re.search(PASSWORD_REGES, data["password"]):
-            return JsonResponse ({"MESSAGE": "잘못된 패스워드 형식입니다."}, status = 400)
+            return JsonResponse ({"MESSAGE": "INVALID PASSWORD"}, status = 400)
 
         if Account.objects.filter(email=data["email"]).exists():
-            return JsonResponse ({"MESSAGE":"중복된 이메일 주소입니다."}, status = 400)
+            return JsonResponse ({"MESSAGE":"EXISTED EMAIL"}, status = 400)
         
         hashed_passwored = bcrypt.hashpw(data["password"].encode('utf-8'), bcrypt.gensalt()).decode()
         
