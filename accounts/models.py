@@ -5,6 +5,7 @@ class Account(models.Model):
     email    = models.EmailField()
     password = models.CharField(max_length=200)
     address  = models.CharField(max_length=200)
+    status   = models.BooleanField(default=True)
 
     class Meta:
         db_table = 'accounts'
