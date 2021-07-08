@@ -36,23 +36,3 @@ class SignupView(View):
             return JsonResponse ({"MESSAGE":"SUCCESS"}, status = 201)
         except KeyError:
             return JsonResponse ({"MESSAGE":"KEY_ERROR"}, status = 400)
-
-class SigninView(View):
-    def get(self, request):
-        data = json.loads(request.body)
-
-        name = Account.objects.get(email=data["email"])
-
-        try:
-            if bcrypt.checkpw(data["password"].encode("utf-8"), name.password.encode("utf-8")):
-
-                access_token = jwt.encode({"name":name.pk}, SECRET_KEY, algorithm = 'HS256')
-
-                return JsonResponse ({"MESSAGE":"SUCCESS", "TOKEN":access_token}, status = 200)
-
-            return JsonResponse({"MESSAGE":"INVALID_ERROR"}, status = 400)
-        
-        except KeyError:
-            return JsonResponse({"MESSAGE":"KEY_ERROR"}, status = 401)
-        except ValueError:
-            return JsonResponse({"MESSAGE":"INVALID_NAME"}, status = 401)
