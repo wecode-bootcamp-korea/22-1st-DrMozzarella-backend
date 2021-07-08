@@ -1,5 +1,3 @@
-import json
-
 from django.views import View
 from django.http  import JsonResponse
 
@@ -31,14 +29,10 @@ class EventView(View):
                     }
                 )
             
-            results = [
-                {
-                    "product_events": product_events_results
-                },
-                {
-                    "category_events": category_events_results
-                }
-            ]
+            results = {
+                "product_events"  : product_events_results,
+                "category_events" : category_events_results
+            }
 
             return JsonResponse({"results": results}, status=200)
         
