@@ -9,23 +9,13 @@ from orders.models  import Cart, Order, OrderItem, ItemStatus, OrderStatus
 class CartView(View):
     def post(self, request):
         try:
-            data = json.loads(request.body)
             user_id = 1
-            if Cart.objects.filter(account_id=user_id, option_id=data['option_id']).exists():
-                cart = Cart.objects.get(account_id=user_id, option_id=data['option_id'])
+            data = json.loads(request.body)
+            cart, created = Cart.objects.get_or_create(account_id=user_id, option_id=data['option_id'])
 
-                if data['quantity'] > 0:
-                    cart.quantity = data['quantity']
-                    cart.save()
-                else:
-                    return JsonResponse({"message": "INVALID_QUANTITY"}, status=409)
-
-            else:
-                Cart.objects.create(
-                    account_id = user_id,
-                    option_id  = data['option_id'],
-                    quantity   = data['quantity']
-                )
+            if not created:
+                cart.quantity += 1
+                cart.save()
 
             return JsonResponse({"message": "SUCCESS"}, status=201)
 
@@ -59,6 +49,11 @@ class CartView(View):
         
         except Cart.DoesNotExist:
             return JsonResponse({"message": "INVALID_OPTION"}, status=400)
+
+    # def patch(self, request, option_id):
+        # try:
+            # user_id = 1
+
 
 class OrderView(View):
     def post(self, request):
