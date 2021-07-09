@@ -26,7 +26,8 @@ class ProductsView(View) :
                     "name":        category.name,
                     "image":       category.image_url,
                     "description": category.description}})
-                products = Product.objects.filter(category = category.id)[offset: offset+limit]
+                q = Q(category = category)    
+                products = Product.objects.filter(q)[offset: offset+limit]
 
                 if option == "all":
                     products = Product.objects.all()[offset: offset+limit]
