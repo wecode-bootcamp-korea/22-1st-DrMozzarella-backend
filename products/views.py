@@ -10,12 +10,12 @@ class MetaView(View):
         results = {}
         for menu in menus:
             results[menu.name] = {
-                "id": menu.id,
-                "categories": [
+                "menu_id"    : menu.id,
+                "categories" : [
                     {
-                        "id": category.id,
-                        "name": category.name,
-                        "image_url": category.image_url
+                        "category_id" : category.id,
+                        "name"        : category.name,
+                        "image_url"   : category.image_url
                     } for category in menu.category_set.all()]
             }
 
