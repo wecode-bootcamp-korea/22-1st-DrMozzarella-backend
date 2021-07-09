@@ -1,6 +1,7 @@
 import json
 from operator               import itemgetter
 
+<<<<<<< HEAD
 from django.views           import View
 from django.http            import JsonResponse
 
