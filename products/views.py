@@ -34,13 +34,17 @@ class ProductsView(View) :
                 if option == "best":
                     products = products[:10]
 
-                productlist = []
-                keys        = ["id","name","category","description","thumbnail","hover","score","sales","price"]
-                for product in products :
-                    values  = []
-                    price   = product.option_set.all().order_by('-price').first().price
-                    values  = [product.id,product.name,category.name,product.description,product.thumbnail_image_url,product.hover_image_url,product.score,product.sales,price]
-                    productlist.append(dict(zip(keys,values)))
+                productlist = [dict(zip(["id","name","category","description","thumbnail","hover","score","sales","price"],
+                                [product.id,
+                                product.name,
+                                category.name,
+                                product.description,
+                                product.thumbnail_image_url,
+                                product.hover_image_url,
+                                product.score,
+                                product.sales,
+                                product.option_set.all().order_by('-price').first().price])) 
+                                for product in products]
                 
                 if option not in (["all","best","none"]) :
                     if price_option == "desc" :
@@ -56,3 +60,4 @@ class ProductsView(View) :
 
         except KeyError :
             return JsonResponse({'MESSAGE':'KEY_ERROR'}, status=400)
+
