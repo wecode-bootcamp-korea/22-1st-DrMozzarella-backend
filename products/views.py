@@ -1,11 +1,10 @@
 import json
-from operator               import itemgetter
+from operator        import itemgetter
 
-<<<<<<< HEAD
-from django.views           import View
-from django.http            import JsonResponse
+from django.views    import View
+from django.http     import JsonResponse
 
-from products.models        import Category, Option, Product
+from products.models import Category, Option, Product
 
 class CategoryView(View) :
     def get(self,request) :
