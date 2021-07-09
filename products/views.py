@@ -1,12 +1,13 @@
 import json
-from operator        import itemgetter
+from operator         import itemgetter
 
-from django.views    import View
-from django.http     import JsonResponse
+from django.views     import View
+from django.http      import JsonResponse
+from django.db.models import Q
 
-from products.models import Category, Option, Product
+from products.models  import Category, Option, Product
 
-class ProductView(View) :
+class ProductsView(View) :
     def get(self,request) :
 
         try :
@@ -15,15 +16,16 @@ class ProductView(View) :
             offset       = int(request.GET.get("offset",0))
             limit        = int(request.GET.get("limit",10)) 
             price_option = request.GET.get("price","desc") 
+            q = Q(id = category_id)
 
             result = [] 
-            if Category.objects.filter(id = category_id).exists()  :
+            if Category.objects.filter(q).exists()  :
                 category = Category.objects.get(id = category_id)
-                result.append({
+                result.append({"category":{
                     "id":          category.id,
                     "name":        category.name,
                     "image":       category.image_url,
-                    "description": category.description})
+                    "description": category.description}})
                 products = Product.objects.filter(category = category.id)[offset: offset+limit]
 
                 if option == "all":
@@ -33,19 +35,13 @@ class ProductView(View) :
                     products = products[:10]
 
                 productlist = []
+                keys        = ["id","name","category","description","thumbnail","hover","score","sales","price"]
                 for product in products :
-                    price            = product.option_set.all().order_by('-price').first().price
-                    productlist.append({
-                        "id":          product.id,
-                        "name":        product.name,
-                        "category":    category.name,
-                        "description": product.description,
-                        "thumbnail":   product.thumbnail_image_url,
-                        "hover":       product.hover_image_url,
-                        "score":       product.score,
-                        "sales":       product.sales,
-                        "price":       price
-                    })
+                    values  = []
+                    price   = product.option_set.all().order_by('-price').first().price
+                    values  = [product.id,product.name,category.name,product.description,product.thumbnail_image_url,product.hover_image_url,product.score,product.sales,price]
+                    productlist.append(dict(zip(keys,values)))
+                
                 if option not in (["all","best","none"]) :
                     if price_option == "desc" :
                         productlist = sorted(productlist,key=itemgetter('price'),reverse=True)
@@ -60,4 +56,3 @@ class ProductView(View) :
 
         except KeyError :
             return JsonResponse({'MESSAGE':'KEY_ERROR'}, status=400)
-
