@@ -41,13 +41,13 @@ class SigninView(View):
         try:
             user = Account.objects.get(email=data["email"])
             if not Account.objects.get(email=data["email"]).exists():
-                return JsonResponse({"MESSAGE":"NOT EXISTED EMAIL"}, status = 400)
+                return JsonResponse({"MESSAGE":"INVALID USER"}, status = 400)
 
             if bcrypt.checkpw(data["password"].encode("utf-8"), user.password.encode("utf-8")):
                 access_token = jwt.encode({"user_id":user.id}, SECRET_KEY, algorithm = 'HS256')
                 return JsonResponse ({"MESSAGE":"SUCCESS", "TOKEN":access_token}, status = 200)
 
-            return JsonResponse({"MESSAGE":"INVALID ERROR"}, status = 400)
+            return JsonResponse({"MESSAGE":"INVALID USER"}, status = 400)
         
         except KeyError:
             return JsonResponse({"MESSAGE":"KEY ERROR"}, status = 401)
