@@ -15,10 +15,10 @@ class EventView(View):
 
             product_events_results = [
                 {
-                    "image_url"           : product_event.image_url,
-                    "product_name"        : product_event.product.name,
-                    "product_description" : product_event.product.description,
-                    "product_id"          : product_event.product.id
+                    "image_url"       : product_event.image_url,
+                    "product_name"    : product_event.product.name,
+                    "product_summary" : product_event.product.summary,
+                    "product_id"      : product_event.product.id
                 } for product_event in product_events]
 
             category_events_results = [
