@@ -65,7 +65,7 @@ class OrderView(View):
         try:
             user_id = 1
             data = json.loads(request.body)
-            carts = Cart.objects.filter(account_id=user_id)
+            carts = Cart.objects.filter(account_id=user_id) 
 
             if carts.exists():
                 order = Order.objects.create(
@@ -75,12 +75,17 @@ class OrderView(View):
                 )
                 
                 for cart in carts:
+                    quantity = min(cart.quantity, cart.option.product.stocks),
+
                     OrderItem.objects.create(
                         order_id    = order.id,
                         option_id   = cart.option.id,
-                        quantity    = cart.quantity,
+                        quantity    = quantity,
                         item_status = ItemStatus.objects.get(status_name=data['item_status'])
                     )
+                    cart.option.product.stocks -= quantity
+                    cart.option.product.sales  += quantity
+                    cart.option.product.save()
                 
                 carts.delete()
 
@@ -91,3 +96,14 @@ class OrderView(View):
 
         except IndexError:
             return JsonResponse({"message":"KEY_ERROR"}, status=400)
+
+    def get(self, request):
+        user_id = 1
+        orders = Order.objects.filter(account_id=user_id)
+        
+        results = [
+            {
+                "order_number": order.order_number,
+            } for order in orders]
+
+        return JsonResponse({"results": "message"})
