@@ -16,8 +16,7 @@ class MetaView(View):
                         "id": category.id,
                         "name": category.name,
                         "image_url": category.image_url
-                    }
-                for category in menu.category_set.all()]
+                    } for category in menu.category_set.all()]
             }
 
         return JsonResponse({"results": results}, status=200)
