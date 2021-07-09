@@ -17,3 +17,11 @@ class CategoryEvent(models.Model):
 
     class Meta:
         db_table = 'category_events'
+
+class SloganEvent(models.Model):
+    image_url  = models.URLField(max_length=500)
+    slogan     = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'slogan_events'
