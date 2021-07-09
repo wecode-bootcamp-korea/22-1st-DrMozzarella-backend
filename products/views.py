@@ -32,12 +32,11 @@ class CategoryView(View) :
             result = ["result"] 
             if Category.objects.filter(id = category_id).exists()  :
                 category = Category.objects.get(id = category_id)
-                if option != "all" :
-                    result.append({"cateogories":[{
-                        "id":           category.id,
-                        "name":         category.name,
-                        "image":        category.image_url,
-                        "description":  category.description}]})
+                result.append({"cateogories":[{
+                    "id":           category.id,
+                    "name":         category.name,
+                    "image":        category.image_url,
+                    "description":  category.description}]})
                 products = Product.objects.filter(category = category.id)[offset: offset+limit]
 
                 if option == "all":
