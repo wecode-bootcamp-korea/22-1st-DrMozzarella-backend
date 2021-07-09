@@ -10,7 +10,7 @@ class CartView(View):
     def post(self, request):
         try:
             data = json.loads(request.body)
-
+            user_id = 1
             if Cart.objects.filter(account_id=user_id, option_id=data['option_id']).exists():
                 cart = Cart.objects.get(account_id=user_id, option_id=data['option_id'])
 
@@ -33,6 +33,7 @@ class CartView(View):
             return JsonResponse({"message": "INDEX_ERROR"}, status=400)
 
     def get(self, request):
+        user_id = 1
         carts = Cart.objects.filter(account_id=user_id)
 
         results = [
@@ -50,6 +51,7 @@ class CartView(View):
 
     def delete(self, request, option_id):
         try:
+            user_id = 1
             cart = Cart.objects.get(account_id=user_id, option_id=option_id)
             cart.delete()
 
@@ -61,26 +63,31 @@ class CartView(View):
 class OrderView(View):
     def post(self, request):
         try:
+            user_id = 1
             data = json.loads(request.body)
-
             carts = Cart.objects.filter(account_id=user_id)
-            order = Order.objects.create(
-                account_id   = user_id,
-                order_number = uuid.uuid4(),
-                order_status = OrderStatus.objects.get(status_name=data['order_status'])
-            )
-            
-            for cart in carts:
-                OrderItem.objects.create(
-                    order_id    = order.id,
-                    option_id   = cart.option.id,
-                    quantity    = cart.quantity,
-                    item_status = ItemStatus.objects.get(status_name=data['item_status'])
-                )
-            
-            carts.delete()
 
-            return JsonResponse({"message": "SUCCESS"}, status=200)
+            if carts.exists():
+                order = Order.objects.create(
+                    account_id   = user_id,
+                    order_number = uuid.uuid4(),
+                    order_status = OrderStatus.objects.get(status_name=data['order_status'])
+                )
+                
+                for cart in carts:
+                    OrderItem.objects.create(
+                        order_id    = order.id,
+                        option_id   = cart.option.id,
+                        quantity    = cart.quantity,
+                        item_status = ItemStatus.objects.get(status_name=data['item_status'])
+                    )
+                
+                carts.delete()
+
+                return JsonResponse({"message": "SUCCESS"}, status=200)
+
+            else:
+                return JsonResponse({"message":"EMPTY_CART"}, status=400)
 
         except IndexError:
             return JsonResponse({"message":"KEY_ERROR"}, status=400)
