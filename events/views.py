@@ -14,20 +14,17 @@ class EventView(View):
 
             product_events_results = [
                 {
-                        "image_url"  : product_event.image_url,
-                        "product_id" : product_event.product_id
-                }
-            for product_event in product_events]
-            
+                    "image_url"  : product_event.image_url,
+                    "product_id" : product_event.product_id
+                } for product_event in product_events]
 
             category_events_results = [
                 {
-                        "image_url": category_event.image_url,
-                        "category_id": category_event.category_id,
-                        "title": category_event.title,
-                        "description": category_event.description
-                }
-            for category_event in category_events]
+                    "image_url": category_event.image_url,
+                    "category_id": category_event.category_id,
+                    "title": category_event.title,
+                    "description": category_event.description
+                } for category_event in category_events]
             
             results = {
                 "product_events"  : product_events_results,
@@ -36,8 +33,5 @@ class EventView(View):
 
             return JsonResponse({"results": results}, status=200)
         
-        except IndexError:
-            return JsonResponse({"message": "DATABASE_ERROR"}, status=400)
-
         except ValueError:
             return JsonResponse({"message": "INVALID_COUNT"}, status=400)
