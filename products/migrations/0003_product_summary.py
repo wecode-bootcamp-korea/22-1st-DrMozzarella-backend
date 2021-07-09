@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='product',
             name='summary',
-            field=models.TextField(default=1),
+            field=models.TextField(default="NULL"),
             preserve_default=False,
         ),
     ]
