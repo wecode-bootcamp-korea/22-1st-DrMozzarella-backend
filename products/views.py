@@ -11,7 +11,7 @@ class CategoryView(View) :
         default_option  = "none"
         offset          = 0
         limit           = 0
-        price           = "desc"  
+        price_option    = "desc"  
 
         try :
             if "option" in request.GET :
@@ -26,7 +26,7 @@ class CategoryView(View) :
             if "limit" in request.GET :
                 limit           = int(request.GET["limit"]) 
             if "price" in request.GET :
-                price           = request.GET["price"] 
+                price_option    = request.GET["price"] 
 
             result = ["result"] 
             if Category.objects.filter(id = category_id).exists()  :
@@ -58,6 +58,12 @@ class CategoryView(View) :
                         "sales":       product.sales,
                         "price":       price
                     })
+
+                if price_option == "desc" :
+                    productlist = sorted(productlist,key=itemgetter('price'),reverse=True)
+                else :
+                    productlist = sorted(productlist,key=itemgetter('price'),reverse=False)
+
                 result.append({"products":[productlist]})    
             else :
                 return JsonResponse({'MESSAGE':'NO DATA'}, status=400)
