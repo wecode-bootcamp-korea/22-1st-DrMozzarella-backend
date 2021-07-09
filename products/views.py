@@ -6,43 +6,31 @@ from django.http     import JsonResponse
 
 from products.models import Category, Option, Product
 
-class CategoryView(View) :
+class ProductView(View) :
     def get(self,request) :
-        default_option  = "none"
-        offset          = 0
-        limit           = 0
-        price_option    = "desc"  
 
         try :
-            if "option" in request.GET :
-                option  = request.GET["option"]
-            else :
-                option  = default_option
+            option       = request.GET.get("option","none")
+            category_id  = request.GET.get("category_id","all") 
+            offset       = int(request.GET.get("offset",0))
+            limit        = int(request.GET.get("limit",10)) 
+            price_option = request.GET.get("price","desc") 
 
-            if "category_id" in request.GET :
-                category_id     = request.GET["category_id"] 
-            if "offset" in request.GET :
-                offset          = int(request.GET["offset"])
-            if "limit" in request.GET :
-                limit           = int(request.GET["limit"]) 
-            if "price" in request.GET :
-                price_option    = request.GET["price"] 
-
-            result = ["result"] 
+            result = [] 
             if Category.objects.filter(id = category_id).exists()  :
                 category = Category.objects.get(id = category_id)
-                result.append({"cateogories":[{
+                result.append({
                     "id":          category.id,
                     "name":        category.name,
                     "image":       category.image_url,
-                    "description": category.description}]})
+                    "description": category.description})
                 products = Product.objects.filter(category = category.id)[offset: offset+limit]
 
                 if option == "all":
-                    products     = Product.objects.all()[offset: offset+limit]
+                    products = Product.objects.all()[offset: offset+limit]
 
                 if option == "best":
-                    products     = products[:10]
+                    products = products[:10]
 
                 productlist = []
                 for product in products :
@@ -64,11 +52,12 @@ class CategoryView(View) :
                 else :
                     productlist = sorted(productlist,key=itemgetter('price'),reverse=False)
 
-                result.append({"products":[productlist]})    
+                result.append({"products":productlist})    
             else :
                 return JsonResponse({'MESSAGE':'NO DATA'}, status=400)
+
+            return JsonResponse({'MESSAGE':'SUCCESS', "results": result}, status=201)
 
         except KeyError :
             return JsonResponse({'MESSAGE':'KEY_ERROR'}, status=400)
 
-        return JsonResponse({'MESSAGE':{'SUCCESS': result}}, status=201)
