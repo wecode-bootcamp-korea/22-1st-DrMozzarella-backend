@@ -11,7 +11,6 @@ class CartView(View):
         try:
             data = json.loads(request.body)
 
-            user_id = 1
             if Cart.objects.filter(account_id=user_id, option_id=data['option_id']).exists():
                 cart = Cart.objects.get(account_id=user_id, option_id=data['option_id'])
 
@@ -63,7 +62,6 @@ class OrderView(View):
     def post(self, request):
         try:
             data = json.loads(request.body)
-            user_id = 1
 
             carts = Cart.objects.filter(account_id=user_id)
             order = Order.objects.create(
