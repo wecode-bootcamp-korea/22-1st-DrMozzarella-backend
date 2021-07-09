@@ -30,12 +30,12 @@ class CartView(View):
             {
                 "product_name"        : cart.option.product.name,
                 "thumbnail_image_url" : cart.option.product.thumbnail_image_url,
+                "product_id"          : cart.option.product_id,
                 "option_id"           : cart.option.id,
                 "weight"              : cart.option.weight,
                 "price"               : cart.option.price,
                 "quantity"            : cart.quantity
-            }
-        for cart in carts]
+            } for cart in carts]
 
         return JsonResponse({"results": results}, status=200)
 
@@ -50,17 +50,36 @@ class CartView(View):
         except Cart.DoesNotExist:
             return JsonResponse({"message": "INVALID_OPTION"}, status=400)
 
-    # def patch(self, request, option_id):
-        # try:
-            # user_id = 1
+    def patch(self, request, option_id):
+        try:
+            user_id = 1
+            data = json.loads(request.body)
+            cart = Cart.objects.get(account_id=user_id, option_id=option_id)
+
+            if data['quantity'] <= 0:
+                return JsonResponse({"message": "INVALID_QUANTITY"}, status=409)
+
+            cart.quantity = data['quantity']
+            cart.save()
+
+            return JsonResponse({"message": "SUCCESS"}, status=201)
+
+        except Cart.DoesNotExist:
+            return JsonResponse({"message": "INVALID_OPTION"}, status=400)
+
+        except KeyError:
+            return JsonResponse({"message": "KEY_ERROR"}, status=400) 
+
+        except json.decoder.JSONDecodeError:
+            return JsonResponse({"message": "KEY_ERROR"}, status=400)
 
 
 class OrderView(View):
     def post(self, request):
         try:
             user_id = 1
-            data = json.loads(request.body)
-            carts = Cart.objects.filter(account_id=user_id) 
+            data  = json.loads(request.body)
+            carts = Cart.objects.filter(account_id=user_id)
 
             if carts.exists():
                 order = Order.objects.create(
@@ -70,7 +89,7 @@ class OrderView(View):
                 )
                 
                 for cart in carts:
-                    quantity = min(cart.quantity, cart.option.product.stocks),
+                    quantity = min(cart.quantity, cart.option.product.stocks)
 
                     OrderItem.objects.create(
                         order_id    = order.id,
