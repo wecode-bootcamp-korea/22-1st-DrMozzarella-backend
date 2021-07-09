@@ -8,11 +8,10 @@ class EventView(View):
         try:
             product_events_count  = int(request.GET.get('product-events-count', 4))
             category_events_count = int(request.GET.get('category-events-count', 2))
-            slogan_events_count   = int(request.GET.get('slogan-events-count', 1))
 
             product_events  = ProductEvent.objects.all().order_by('-created_at')[:product_events_count]
             category_events = CategoryEvent.objects.all().order_by('-created_at')[:category_events_count]
-            slogan_events   = SloganEvent.objects.all().order_by('-created_at')[:slogan_events_count]
+            slogan_event    = SloganEvent.objects.all().order_by('-created_at').first()
 
             product_events_results = [
                 {
@@ -30,11 +29,10 @@ class EventView(View):
                     "description" : category_event.description
                 } for category_event in category_events]
 
-            slogan_events_results = [
-                {
+            slogan_events_results = {
                     "image_url" : slogan_event.image_url,
                     "slogan"    : slogan_event.slogan
-                } for slogan_event in slogan_events]
+                } 
             
             results = {
                 "product_events"  : product_events_results,
