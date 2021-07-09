@@ -46,11 +46,11 @@ class ProductView(View) :
                         "sales":       product.sales,
                         "price":       price
                     })
-
-                if price_option == "desc" :
-                    productlist = sorted(productlist,key=itemgetter('price'),reverse=True)
-                else :
-                    productlist = sorted(productlist,key=itemgetter('price'),reverse=False)
+                if option not in (["all","best","none"]) :
+                    if price_option == "desc" :
+                        productlist = sorted(productlist,key=itemgetter('price'),reverse=True)
+                    else :
+                        productlist = sorted(productlist,key=itemgetter('price'),reverse=False)
 
                 result.append({"products":productlist})    
             else :
