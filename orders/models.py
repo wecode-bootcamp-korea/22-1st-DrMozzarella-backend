@@ -28,13 +28,13 @@ class OrderItem(models.Model):
         db_table = 'order_items'
 
 class ItemStatus(models.Model):
-    status_name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50)
 
     class Meta:
         db_table = 'item_status'
 
 class OrderStatus(models.Model):
-    status_name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50)
 
     class Meta:
         db_table = 'order_status'
