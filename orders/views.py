@@ -39,17 +39,6 @@ class CartView(View):
 
         return JsonResponse({"results": results}, status=200)
 
-    def delete(self, request, option_id):
-        try:
-            user_id = 1
-            cart = Cart.objects.get(account_id=user_id, option_id=option_id)
-            cart.delete()
-
-            return JsonResponse({"message": "SUCCESS"}, status=204)
-        
-        except Cart.DoesNotExist:
-            return JsonResponse({"message": "INVALID_OPTION"}, status=400)
-
     def patch(self, request, option_id):
         try:
             user_id = 1
@@ -73,6 +62,16 @@ class CartView(View):
         except json.decoder.JSONDecodeError:
             return JsonResponse({"message": "KEY_ERROR"}, status=400)
 
+    def delete(self, request, option_id):
+        try:
+            user_id = 1
+            cart = Cart.objects.get(account_id=user_id, option_id=option_id)
+            cart.delete()
+
+            return JsonResponse({"message": "SUCCESS"}, status=204)
+        
+        except Cart.DoesNotExist:
+            return JsonResponse({"message": "INVALID_OPTION"}, status=400)
 
 class OrderView(View):
     def post(self, request):
