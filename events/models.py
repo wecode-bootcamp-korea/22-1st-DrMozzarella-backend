@@ -27,10 +27,11 @@ class SloganEvent(models.Model):
         db_table = 'slogan_events'
 
 class CompanyEvent(models.Model):
-    image_url = models.URLField(max_length=500)
+    image_url   = models.URLField(max_length=500)
+    title       = models.TextField()
     description = models.TextField()
-    is_main = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
+    is_main     = models.BooleanField(default=False)
+    created_at  = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = 'company_events'

@@ -1,6 +1,5 @@
-import re
 from django.db                import models
-from django.patch             import receiver
+from django.dispatch             import receiver
 from django.db.models.signals import post_save, pre_delete
 from django.db.models         import Avg
 
