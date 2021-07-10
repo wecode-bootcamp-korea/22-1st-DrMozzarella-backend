@@ -83,5 +83,5 @@ class Nutrition(models.Model):
 def option_post_save_handler(sender, instance, **kwargs):
     instance.product.max_price = instance.product.option_set.all().order_by('-price').first().price 
     instance.product.sales     = instance.product.option_set.aggregate(Sum('sales'))['sales__sum']
-    instance.product.sales     = instance.product.option_set.aggregate(Sum('stocks'))['stocks__sum']
+    instance.product.stocks    = instance.product.option_set.aggregate(Sum('stocks'))['stocks__sum']
     instance.product.save()
