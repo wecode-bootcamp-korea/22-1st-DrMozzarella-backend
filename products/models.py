@@ -2,6 +2,7 @@ from django.db import models
 
 class Product(models.Model):
     name                  = models.CharField(max_length=50)
+    summary               = models.TextField()
     description           = models.TextField()
     sales                 = models.IntegerField()
     stocks                = models.IntegerField()
