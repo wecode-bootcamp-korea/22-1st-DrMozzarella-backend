@@ -85,7 +85,7 @@ class OrderView(View):
                 order = Order.objects.create(
                     account_id   = user_id,
                     order_number = uuid.uuid4(),
-                    order_status = OrderStatus.objects.get(status_name="Pending")
+                    status = OrderStatus.objects.get(name="Pending")
                 )
                 
                 for cart in carts:
@@ -97,7 +97,7 @@ class OrderView(View):
                         order_id    = order.id,
                         option_id   = cart.option.id,
                         quantity    = cart.quantity,
-                        item_status = ItemStatus.objects.get(status_name="Pending")
+                        status = ItemStatus.objects.get(name="Pending")
                     )
                     cart.option.stocks -= cart.quantity
                     cart.option.sales  += cart.quantity
@@ -121,7 +121,7 @@ class OrderView(View):
             {
                 "order_id"       : order.id,
                 "order_number"   : order.order_number,
-                "order_status"   : order.order_status.status_name,
+                "order_status"   : order.status.name,
                 "ordered_at"     : order.ordered_at,
                 "order_products" : [
                     {
@@ -133,7 +133,7 @@ class OrderView(View):
                         "option_id"         : orderitem.option_id,
                         "weight"            : orderitem.option.weight,
                         "price"             : orderitem.option.price,
-                        "item_status"       : orderitem.item_status.status_name
+                        "item_status"       : orderitem.status.name
                     } for orderitem in order.orderitem_set.all()]
             } for order in orders]
 
@@ -146,7 +146,7 @@ class OrderView(View):
             data = json.loads(request.body)
             order = Order.objects.get(id = order_id, account_id = user_id)
             
-            order.order_status = OrderStatus.objects.get(status_name = data['order_status'])
+            order.status = OrderStatus.objects.get(name = data['order_status'])
             order.save()
             
             return JsonResponse({"message": "SUCCESS"}, status=201)
@@ -167,7 +167,7 @@ class OrderView(View):
                 order_id          = order_id,
                 order__account_id = user_id
             )
-            order_item.item_status = ItemStatus.objects.get(status_name = data['item_status'])
+            order_item.status = ItemStatus.objects.get(name = data['item_status'])
             order_item.save()
             
             return JsonResponse({"message": "SUCCESS"}, status=201)
