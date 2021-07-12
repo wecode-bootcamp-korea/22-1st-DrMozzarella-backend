@@ -37,7 +37,6 @@ class SignupView(View):
 class SigninView(View):
     def get(self, request):
         data = json.loads(request.body)
-        
         try:
             user = Account.objects.get(email=data["email"])
             if not Account.objects.get(email=data["email"]).exists():
