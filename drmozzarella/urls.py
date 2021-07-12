@@ -1,8 +1,8 @@
 from django.urls    import path, include
 
-from products.views import MetaView
+from products.views import MenuView
 
 urlpatterns = [
-    path('meta'     , MetaView.as_view()),
+    path('menus'    , MenuView.as_view()),
     path('accounts' , include('accounts.urls')),
 ]

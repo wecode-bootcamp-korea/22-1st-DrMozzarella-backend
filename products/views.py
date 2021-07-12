@@ -3,7 +3,7 @@ from django.views import View
 
 from products.models import Menu
 
-class MetaView(View):
+class MenuView(View):
     def get(self, request):
         menus = Menu.objects.all()
         
