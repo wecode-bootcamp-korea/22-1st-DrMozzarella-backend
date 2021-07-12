@@ -1,17 +1,16 @@
 import jwt
-import my_settings
 
 from .models     import Account
 from django.http import JsonResponse
-
+from my_settings import SECRET_KEY, ALGORITHM
 
 def user_validator(func):
     def wrapper(self, request, *args, **kwargs):
         token = request.headers.get('Authorization', None)
         try:
             if token:
-                payload = jwt.decode(token, my_settings.SECRET_KEY, my_settings.algorithm)
-                user = Account.objects.get(id = payload["user_id"])
+                payload      = jwt.decode(token, SECRET_KEY, ALGORITHM)
+                user         = Account.objects.get(id = payload["user_id"])
                 request.user = user
                 return func(self, request, *args, **kwargs)
             
