@@ -9,8 +9,8 @@ from orders.models  import Cart, Order, OrderItem, ItemStatus, OrderStatus
 class CartView(View):
     def post(self, request):
         try:
-            user_id = 1
-            data = json.loads(request.body)
+            user_id       = 1
+            data          = json.loads(request.body)
             cart, created = Cart.objects.get_or_create(account_id=user_id, option_id=data['option_id'])
 
             if not created:
@@ -33,7 +33,7 @@ class CartView(View):
                 "product_id"          : cart.option.product_id,
                 "option_id"           : cart.option.id,
                 "weight"              : cart.option.weight,
-                "price"               : cart.option.price,
+                "price"               : float(cart.option.price),
                 "quantity"            : cart.quantity,
                 "stocks"              : cart.option.stocks,
                 "availability"        : (cart.option.stocks >= cart.quantity)
@@ -94,10 +94,10 @@ class OrderView(View):
                         return JsonResponse({"messeage": "INVALID_QUANTITY"}, status=400)
 
                     OrderItem.objects.create(
-                        order_id    = order.id,
-                        option_id   = cart.option.id,
-                        quantity    = cart.quantity,
-                        status = ItemStatus.objects.get(name="Pending")
+                        order_id  = order.id,
+                        option_id = cart.option.id,
+                        quantity  = cart.quantity,
+                        status    = ItemStatus.objects.get(name="Pending")
                     )
                     cart.option.stocks -= cart.quantity
                     cart.option.sales  += cart.quantity
@@ -115,7 +115,7 @@ class OrderView(View):
 
     def get(self, request):
         user_id = 1
-        orders = reversed(Order.objects.filter(account_id=user_id))
+        orders  = reversed(Order.objects.filter(account_id=user_id))
         
         results = [
             {
@@ -132,7 +132,7 @@ class OrderView(View):
                         "quantity"          : orderitem.quantity,
                         "option_id"         : orderitem.option_id,
                         "weight"            : orderitem.option.weight,
-                        "price"             : orderitem.option.price,
+                        "price"             : float(orderitem.option.price),
                         "item_status"       : orderitem.status.name
                     } for orderitem in order.orderitem_set.all()]
             } for order in orders]
