@@ -28,12 +28,12 @@ class CommentLike(models.Model):
 @receiver(post_save, sender=Comment)
 def comment_post_save_handler(sender, instance, **kwargs):
     instance.product.score = instance.product.comment_set.aggregate(Avg('score'))["score__avg"]
-    instance.save()
+    instance.product.save()
 
 @receiver(post_delete, sender=Comment)
 def comment_pre_delete_handler(sender, instance, **kwargs):
     instance.product.score = instance.product.comment_set.aggreage(Avg('score'))["score__avg"]
-    instance.save()
+    instance.product.save()
 
 @receiver(post_save, sender=CommentLike)
 def commentlike_post_save_handler(sender, instance, **kwargs):
