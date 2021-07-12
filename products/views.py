@@ -7,16 +7,17 @@ class MenuView(View):
     def get(self, request):
         menus = Menu.objects.all()
         
-        results = {}
-        for menu in menus:
-            results[menu.name] = {
+        results = [
+            {
                 "menu_id"    : menu.id,
+                "menu_name"  : menu.name,
                 "categories" : [
                     {
                         "category_id" : category.id,
                         "name"        : category.name,
-                        "image_url"   : category.image_url
+                        "image_url"   : category.image_url,
+                        "description" : category.description
                     } for category in menu.category_set.all()]
-            }
+            } for menu in menus]
 
         return JsonResponse({"results": results}, status=200)
