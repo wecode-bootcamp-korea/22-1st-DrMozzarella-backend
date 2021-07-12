@@ -1,15 +1,9 @@
 from django.db                import models
-from django.dispatch          import receiver
-from django.db.models.signals import post_save
-from django.db.models         import Sum
 
 class Product(models.Model):
     name                  = models.CharField(max_length=50)
     summary               = models.TextField()
     description           = models.TextField()
-    max_price             = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    sales                 = models.IntegerField(default=0)
-    stocks                = models.IntegerField(default=0)
     score                 = models.DecimalField(max_digits=2, decimal_places=1, default=0)
     thumbnail_image_url   = models.URLField(max_length=500)
     hover_image_url       = models.URLField(max_length=500)
@@ -78,10 +72,3 @@ class Nutrition(models.Model):
 
     class Meta:
         db_table = 'nutritions'
-
-@receiver(post_save, sender=Option)
-def option_post_save_handler(sender, instance, **kwargs):
-    instance.product.max_price = instance.product.option_set.all().order_by('-price').first().price 
-    instance.product.sales     = instance.product.option_set.aggregate(Sum('sales'))['sales__sum']
-    instance.product.stocks    = instance.product.option_set.aggregate(Sum('stocks'))['stocks__sum']
-    instance.product.save()

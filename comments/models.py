@@ -1,6 +1,6 @@
 from django.db                import models
-from django.dispatch             import receiver
-from django.db.models.signals import post_save, pre_delete
+from django.dispatch          import receiver
+from django.db.models.signals import post_save, post_delete
 from django.db.models         import Avg
 
 class Comment(models.Model):
@@ -30,7 +30,7 @@ def comment_post_save_handler(sender, instance, **kwargs):
     instance.product.score = instance.product.comment_set.aggregate(Avg('score'))["score__avg"]
     instance.save()
 
-@receiver(pre_delete, sender=Comment)
+@receiver(post_delete, sender=Comment)
 def comment_pre_delete_handler(sender, instance, **kwargs):
     instance.product.score = instance.product.comment_set.aggreage(Avg('score'))["score__avg"]
     instance.save()
@@ -43,7 +43,7 @@ def commentlike_post_save_handler(sender, instance, **kwargs):
         instance.comment.dislike += 1
     instance.comment.save()
 
-@receiver(pre_delete, sender=CommentLike)
+@receiver(post_delete, sender=CommentLike)
 def commentlike_pre_delete_handler(sender, instance, **kwargs):
     if instance.flag:
         instance.comment.like -= 1
