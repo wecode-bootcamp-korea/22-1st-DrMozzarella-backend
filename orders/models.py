@@ -41,9 +41,9 @@ class OrderStatus(models.Model):
 
 class Coupon(models.Model):
     code             = models.CharField(max_length=10)
-    expiry_date      = models.DateTimeField(auto_now_add=False)
-    discount_percent = models.DecimalField(max_digits=4, decimal_places=2, Null=True)
-    discount_price   = models.DecimalField(max_digits=10, decimal_places=2, Null=True)
+    expiry_date      = models.DateField(auto_now_add=False)
+    discount_percent = models.DecimalField(max_digits=4, decimal_places=2)
+    discount_price   = models.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
         db_table = 'coupons'
