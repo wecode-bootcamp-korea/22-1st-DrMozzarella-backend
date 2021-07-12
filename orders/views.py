@@ -43,12 +43,13 @@ class CartView(View):
 
     def patch(self, request, option_id):
         try:
-            user_id = 1
             data = json.loads(request.body)
-            cart = Cart.objects.get(account_id=user_id, option_id=option_id)
 
             if data['quantity'] <= 0:
                 return JsonResponse({"message": "INVALID_QUANTITY"}, status=409)
+
+            user_id = 1
+            cart = Cart.objects.get(account_id=user_id, option_id=option_id)
 
             cart.quantity = data['quantity']
             cart.save()
@@ -81,7 +82,7 @@ class OrderView(View):
             user_id = 1
             carts = Cart.objects.filter(account_id=user_id)
 
-            if carts.exists():
+            if carts:
                 order = Order.objects.create(
                     account_id   = user_id,
                     order_number = uuid.uuid4(),
@@ -115,7 +116,7 @@ class OrderView(View):
 
     def get(self, request):
         user_id = 1
-        orders  = reversed(Order.objects.filter(account_id=user_id))
+        orders  = Order.objects.filter(account_id=user_id).order_by('-ordered_at')
         
         results = [
             {
@@ -143,8 +144,8 @@ class OrderView(View):
         user_id = 1
         
         try:
-            data = json.loads(request.body)
-            order = Order.objects.get(id = order_id, account_id = user_id)
+            data  = json.loads(request.body)
+            order = Order.objects.get(id=order_id, account_id=user_id)
             
             order.status = OrderStatus.objects.get(name = data['order_status'])
             order.save()
@@ -161,7 +162,7 @@ class OrderView(View):
         user_id = 1
 
         try:
-            data = json.loads(request.body)
+            data       = json.loads(request.body)
             order_item = OrderItem.objects.get(
                 id                = order_item_id,
                 order_id          = order_id,
