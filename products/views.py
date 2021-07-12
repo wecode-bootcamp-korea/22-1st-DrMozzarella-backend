@@ -13,10 +13,10 @@ class MenuView(View):
                 "menu_name"  : menu.name,
                 "categories" : [
                     {
-                        "category_id" : category.id,
-                        "name"        : category.name,
-                        "image_url"   : category.image_url,
-                        "description" : category.description
+                        "category_id"          : category.id,
+                        "category_name"        : category.name,
+                        "category_image_url"   : category.image_url,
+                        "category_description" : category.description
                     } for category in menu.category_set.all()]
             } for menu in menus]
 
