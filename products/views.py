@@ -1,5 +1,7 @@
 import json
 from operator         import itemgetter
+from django.db.models.aggregates import Min
+from django.db.models.query import QuerySet
 
 from django.views     import View
 from django.http      import JsonResponse
@@ -17,11 +19,11 @@ class ProductsView(View) :
             sort_by      = request.GET.get("sort_by","price_desc")
             
             options = {
-                "price_desc"   : "-option__price",
+                "price_desc"   : "option__price",
                 "price_asc"    : "option__price",
-                "sales_desc"   : "-option__sales",
+                "sales_desc"   : "option__sales",
                 "sales_asc"    : "option__sales",
-                "best_seller"  : "-option__sales",
+                "best_seller"  : "option__sales",
             }
             
             offset = offset * limit
@@ -38,19 +40,14 @@ class ProductsView(View) :
                             "thumbmail_image" : product.thumbnail_image_url,
                             "hover_image"     : product.hover_image_url,
                             "score"           : product.score,
-                            "sales"           : product.max_sales,
-                            "price"           : product.max_price,
-                            "stocks"          : product.max_stock,
-                            "option"          : [{"pricde" : option.price,
+                            "sort_value"      : product.sort_value,
+                            "option"          : [{"price"  : option.price,
                                                   "sales"  : option.sales,
                                                   "weight" : option.weight,
-                                                  "stocks" : option.stocks} for option in product.option_set.all()]         
+                                                  "stocks" : option.stocks} for option in Option.objects.filter(product = product.id)]         
                             }
                             for product in Product.objects.filter(where_clause)\
-                                            .annotate(max_price = Max('option__price'))\
-                                            .annotate(max_sales = Max('option__sales'))\
-                                            .annotate(max_stock = Max('option__stocks'))\
-                                            .order_by(options[sort_by])[offset : limit]]
+                            .annotate(sort_value= Max(options[sort_by]) if "desc" in sort_by else Min(options[sort_by])).order_by('sort_value')]
 
             return JsonResponse({'MESSAGE':'SUCCESS', "results": productlist}, status=201)
 
