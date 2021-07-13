@@ -5,13 +5,14 @@ from django.http    import JsonResponse
 from django.views   import View
 
 from orders.models  import Cart, Order, OrderItem, ItemStatus, OrderStatus
+from accounts.utils import user_validator
 
 class CartView(View):
+    @user_validator
     def post(self, request):
         try:
-            user_id       = 1
             data          = json.loads(request.body)
-            cart, created = Cart.objects.get_or_create(account_id=user_id, option_id=data['option_id'])
+            cart, created = Cart.objects.get_or_create(account=request.user, option_id=data['option_id'])
 
             if not created:
                 cart.quantity += 1
@@ -22,9 +23,9 @@ class CartView(View):
         except IndexError:
             return JsonResponse({"message": "INDEX_ERROR"}, status=400)
 
+    @user_validator
     def get(self, request):
-        user_id = 1
-        carts = Cart.objects.filter(account_id=user_id)
+        carts = Cart.objects.filter(account=request.user)
 
         results = [
             {
@@ -41,6 +42,7 @@ class CartView(View):
 
         return JsonResponse({"results": results}, status=200)
 
+    @user_validator
     def patch(self, request, option_id):
         try:
             data = json.loads(request.body)
@@ -48,8 +50,7 @@ class CartView(View):
             if data['quantity'] <= 0:
                 return JsonResponse({"message": "INVALID_QUANTITY"}, status=409)
 
-            user_id = 1
-            cart = Cart.objects.get(account_id=user_id, option_id=option_id)
+            cart = Cart.objects.get(account=request.user, option_id=option_id)
 
             cart.quantity = data['quantity']
             cart.save()
@@ -65,10 +66,10 @@ class CartView(View):
         except json.decoder.JSONDecodeError:
             return JsonResponse({"message": "KEY_ERROR"}, status=400)
 
+    @user_validator
     def delete(self, request, option_id):
         try:
-            user_id = 1
-            cart = Cart.objects.get(account_id=user_id, option_id=option_id)
+            cart = Cart.objects.get(account=request.user, option_id=option_id)
             cart.delete()
 
             return JsonResponse({"message": "SUCCESS"}, status=204)
@@ -77,16 +78,16 @@ class CartView(View):
             return JsonResponse({"message": "INVALID_OPTION"}, status=400)
 
 class OrderView(View):
+    @user_validator
     def post(self, request):
         try:
-            user_id = 1
-            carts = Cart.objects.filter(account_id=user_id)
+            carts = Cart.objects.filter(account=request.user)
 
             if carts:
                 order = Order.objects.create(
-                    account_id   = user_id,
+                    account      = request.user,
                     order_number = uuid.uuid4(),
-                    status = OrderStatus.objects.get(name="Pending")
+                    status       = OrderStatus.objects.get(name="Pending")
                 )
                 
                 for cart in carts:
@@ -114,9 +115,9 @@ class OrderView(View):
         except IndexError:
             return JsonResponse({"message":"KEY_ERROR"}, status=400)
 
+    @user_validator
     def get(self, request):
-        user_id = 1
-        orders  = Order.objects.filter(account_id=user_id).order_by('-ordered_at')
+        orders  = Order.objects.filter(account=request.user).order_by('-ordered_at')
         
         results = [
             {
@@ -140,12 +141,11 @@ class OrderView(View):
 
         return JsonResponse({"results": results}, status=200)
 
+    @user_validator
     def put(self, request, order_id):
-        user_id = 1
-        
         try:
             data  = json.loads(request.body)
-            order = Order.objects.get(id=order_id, account_id=user_id)
+            order = Order.objects.get(id=order_id, account=request.user)
             
             order.status = OrderStatus.objects.get(name = data['order_status'])
             order.save()
@@ -158,15 +158,14 @@ class OrderView(View):
         except KeyError:
             return JsonResponse({"message": "KEY_ERROR"}, status=400)
 
+    @user_validator
     def patch(self, request, order_id, order_item_id):
-        user_id = 1
-
         try:
             data       = json.loads(request.body)
             order_item = OrderItem.objects.get(
-                id                = order_item_id,
-                order_id          = order_id,
-                order__account_id = user_id
+                id             = order_item_id,
+                order_id       = order_id,
+                order__account = request.user
             )
             order_item.status = ItemStatus.objects.get(name = data['item_status'])
             order_item.save()
