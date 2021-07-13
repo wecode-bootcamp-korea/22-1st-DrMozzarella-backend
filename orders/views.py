@@ -3,8 +3,9 @@ import json
 from django.http    import JsonResponse
 from django.views   import View
 
-from orders.models  import Cart
-from accounts.utils import user_validator
+from products.models import Option
+from orders.models   import Cart
+from accounts.utils  import user_validator
 
 class CartView(View):
     @user_validator
