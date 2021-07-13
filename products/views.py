@@ -4,7 +4,7 @@ from django.db.models            import Q
 from django.db.models            import Max
 from django.db.models.aggregates import Min
 
-from .models          import Menu, Option, Product
+from products.models             import Menu, Option, Product
 
 class MenuView(View):
     def get(self, request):
