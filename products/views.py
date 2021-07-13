@@ -1,14 +1,29 @@
-import json
-from operator         import itemgetter
+from django.views                import View
+from django.http                 import JsonResponse
+from django.db.models            import Q
+from django.db.models            import Max
 from django.db.models.aggregates import Min
-from django.db.models.query import QuerySet
 
-from django.views     import View
-from django.http      import JsonResponse
-from django.db.models import Q
-from django.db.models import Count, Max
+from .models          import Menu, Option, Product
 
-from .models          import Category, Option, Product
+class MenuView(View):
+    def get(self, request):
+        menus = Menu.objects.all()
+
+        results = {}
+        for menu in menus:
+            results[menu.name] = {
+                "menu_id"    : menu.id,
+                "categories" : [
+                    {
+                        "category_id"          : category.id,
+                        "category_name"        : category.name,
+                        "category_image_url"   : category.image_url,
+                        "category_description" : category.description
+                    } for category in menu.category_set.all()]
+            }
+
+        return JsonResponse({"results": results}, status=200)
 
 class ProductsView(View) :
     def get(self,request) :
@@ -54,4 +69,3 @@ class ProductsView(View) :
 
         except KeyError :
             return JsonResponse({'MESSAGE':'KEY_ERROR'}, status=400)
-
