@@ -11,7 +11,7 @@ class CartView(View):
     def post(self, request):
         try:
             data          = json.loads(request.body)
-            cart, created = Cart.objects.get_or_create(account=request.user, option_id=data['option_id'])
+            cart, created = Cart.objects.get_or_create(account=request.user, option=Option.objects.get(id=data['option_id']))
 
             if not created:
                 cart.quantity += 1
@@ -21,6 +21,9 @@ class CartView(View):
 
         except IndexError:
             return JsonResponse({"message": "INDEX_ERROR"}, status=400)
+
+        except Option.DoesNotExist:
+            return JsonResponse({"message": "INVALID"}, status=404)
 
     @user_validator
     def get(self, request):
@@ -60,13 +63,13 @@ class CartView(View):
             return JsonResponse({"message": "SUCCESS"}, status=201)
 
         except Cart.DoesNotExist:
-            return JsonResponse({"message": "INVALID_OPTION"}, status=400)
+            return JsonResponse({"message": "INVALID_OPTION"}, status=404)
 
         except KeyError:
             return JsonResponse({"message": "KEY_ERROR"}, status=400) 
 
         except json.decoder.JSONDecodeError:
-            return JsonResponse({"message": "KEY_ERROR"}, status=400)
+            return JsonResponse({"message": "JSON_ERROR"}, status=400)
 
     @user_validator
     def delete(self, request, option_id):
@@ -77,4 +80,4 @@ class CartView(View):
             return JsonResponse({"message": "SUCCESS"}, status=204)
         
         except Cart.DoesNotExist:
-            return JsonResponse({"message": "INVALID_OPTION"}, status=400)
+            return JsonResponse({"message": "INVALID_OPTION"}, status=404)
