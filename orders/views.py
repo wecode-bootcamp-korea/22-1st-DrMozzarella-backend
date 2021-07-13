@@ -12,8 +12,8 @@ class CouponView(View):
             
             results = {
                 'availability'     : date.today() < coupon.expiry_date,
-                'discount_percent' : coupon.discount_percent,
-                'discount_price'   : coupon.discount_price
+                'discount_percent' : float(coupon.discount_percent),
+                'discount_price'   : float(coupon.discount_price)
             }
 
             return JsonResponse({"results": results}, status=200)
