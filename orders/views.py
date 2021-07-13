@@ -26,18 +26,21 @@ class CartView(View):
     def get(self, request):
         carts = Cart.objects.filter(account=request.user)
 
-        results = [
-            {
-                "product_name"        : cart.option.product.name,
-                "thumbnail_image_url" : cart.option.product.thumbnail_image_url,
-                "product_id"          : cart.option.product_id,
-                "option_id"           : cart.option.id,
-                "weight"              : cart.option.weight,
-                "price"               : float(cart.option.price),
-                "quantity"            : cart.quantity,
-                "stocks"              : cart.option.stocks,
-                "availability"        : (cart.option.stocks >= cart.quantity)
-            } for cart in carts]
+        results = {
+            'carts': [
+                {
+                    "product_name"        : cart.option.product.name,
+                    "thumbnail_image_url" : cart.option.product.thumbnail_image_url,
+                    "product_id"          : cart.option.product_id,
+                    "option_id"           : cart.option.id,
+                    "weight"              : cart.option.weight,
+                    "price"               : float(cart.option.price),
+                    "quantity"            : cart.quantity,
+                    "stocks"              : cart.option.stocks,
+                    "availability"        : (cart.option.stocks >= cart.quantity)
+                } for cart in carts],
+            'total': sum(cart.quantity for cart in carts)
+        }
 
         return JsonResponse({"results": results}, status=200)
 
