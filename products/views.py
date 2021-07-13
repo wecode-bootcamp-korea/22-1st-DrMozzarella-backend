@@ -25,15 +25,13 @@ class ProductsView(View) :
                 "sales_asc"    : "option__sales",
                 "best_seller"  : "option__sales",
             }
+            
             offset = offset * limit
             limit  = offset + limit
 
             where_clause = Q()
             if category_id:
                 where_clause.add(Q(category__id=category_id),where_clause.AND)
-
-
-            print(offset,limit)
 
             productlist = [{"product_id"      : product.id,
                             "product_name"    : product.name,
