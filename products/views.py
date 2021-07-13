@@ -32,6 +32,7 @@ class ProductDetailView(View):
         nutrition = current_product.nutrition
 
         product = {
+            'product_id'       : current_product.id,
             'product_name'     : current_product.name,
             'summary'          : current_product.summary,
             'description'      : current_product.description,
