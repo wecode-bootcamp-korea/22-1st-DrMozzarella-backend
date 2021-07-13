@@ -24,6 +24,9 @@ class ProductsView(View) :
                 "best_seller"  : "-option__sales",
             }
             
+            offset = offset * limit
+            limit  = limit * offset
+
             where_clause = Q()
             if category_id:
                 where_clause.add(Q(category__id=category_id),where_clause.AND)
@@ -47,7 +50,7 @@ class ProductsView(View) :
                                             .annotate(max_price = Max('option__price'))\
                                             .annotate(max_sales = Max('option__sales'))\
                                             .annotate(max_stock = Max('option__stocks'))\
-                                            .order_by(options[sort_by])[offset: offset+limit]]
+                                            .order_by(options[sort_by])[offset : limit]]
 
             return JsonResponse({'MESSAGE':'SUCCESS', "results": productlist}, status=201)
 
