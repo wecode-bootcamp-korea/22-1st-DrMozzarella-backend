@@ -82,7 +82,7 @@ class OrderView(View):
             return JsonResponse({"message": "SUCCESS"}, status=201)
         
         except Order.DoesNotExist:
-            return JsonResponse({"message": "INVALID_ORDER_ID"}, status=400)
+            return JsonResponse({"message": "INVALID_ORDER_ID"}, status=404)
         
         except KeyError:
             return JsonResponse({"message": "KEY_ERROR"}, status=400)
@@ -102,7 +102,7 @@ class OrderView(View):
             return JsonResponse({"message": "SUCCESS"}, status=201)
 
         except OrderItem.DoesNotExist:
-            return JsonResponse({"message": "INVALID_ITEM"}, status=400)
+            return JsonResponse({"message": "INVALID_ITEM"}, status=404)
 
         except KeyError:
             return JsonResponse({"message": "KEY_ERROR"}, status=400)
