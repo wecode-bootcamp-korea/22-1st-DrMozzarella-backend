@@ -69,7 +69,7 @@ class ProductDetailView(View):
                 'product_id'     : product.id,
                 'product_name'   : product.name,
                 'score'          : product.score,
-                'thumbmail_image': product.thumbnail_image_url,
+                'thumbnail_image': product.thumbnail_image_url,
                 'hover_image'    : product.hover_image_url,
                 'current'        : (product == current_product),
                 'option' : [
@@ -86,7 +86,7 @@ class ProductDetailView(View):
             {
                 'product_name'   : product.name,
                 'description'    : product.description,
-                'thumbmail_image': product.thumbnail_image_url,
+                'thumbnail_image': product.thumbnail_image_url,
                 'option' : [
                     {
                         "price" : option.price,
