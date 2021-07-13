@@ -19,5 +19,5 @@ class CouponView(View):
             return JsonResponse({"results": results}, status=200)
         
         except Coupon.DoesNotExist:
-            return JsonResponse({"message": "INVALID_COUPON"}, status=400)
+            return JsonResponse({"message": "INVALID_COUPON"}, status=404)
 
