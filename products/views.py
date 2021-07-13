@@ -22,16 +22,16 @@ class ProductsView(View) :
                 "price_desc"   : "option__price",
                 "price_asc"    : "option__price",
                 "sales_desc"   : "option__sales",
-                "sales_asc"    : "option__sales",
-                "best_seller"  : "option__sales",
+                "sales_asc"    : "option__sales"
             }
-            
+
             offset = offset * limit
             limit  = offset + limit
 
-            where_clause = Q()
+            q = Q()
+            
             if category_id:
-                where_clause.add(Q(category__id=category_id),where_clause.AND)
+                q.add(Q(category__id=category_id),q.AND)
 
             productlist = [{"product_id"      : product.id,
                             "product_name"    : product.name,
@@ -46,8 +46,9 @@ class ProductsView(View) :
                                                   "weight" : option.weight,
                                                   "stocks" : option.stocks} for option in Option.objects.filter(product = product.id)]         
                             }
-                            for product in Product.objects.filter(where_clause)\
-                            .annotate(sort_value= Max(options[sort_by]) if "desc" in sort_by else Min(options[sort_by])).order_by('sort_value')][offset:limit]
+                            for product in Product.objects.filter(q)\
+                            .annotate(sort_value= Max(options[sort_by]) if "desc" in sort_by else Min(options[sort_by]))\
+                                .order_by("-sort_value" if "desc" in sort_by else "sort_value")][offset:limit]
 
             return JsonResponse({'MESSAGE':'SUCCESS', "results": productlist}, status=201)
 
