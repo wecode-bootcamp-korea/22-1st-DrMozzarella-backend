@@ -91,36 +91,35 @@ class OrderView(View):
         try:
             carts = Cart.objects.filter(account=request.user)
 
-            if carts.exists():
-                for cart in carts:
-                    if cart.quantity > cart.option.stocks:
-                        return JsonResponse({"messeage": "INVALID_QUANTITY"}, status=400)
+            if not carts.exists():
+                return JsonResponse({"message": "EMPTY_CART"}, status=400)
 
-                with transaction.atomic():
-                    order = Order.objects.create(
-                        account      = request.user,
-                        order_number = uuid.uuid4(),
-                        status       = OrderStatus.objects.get(name="Pending")
+            for cart in carts:
+                if cart.quantity > cart.option.stocks:
+                    return JsonResponse({"messeage": "INVALID_QUANTITY"}, status=400)
+
+            with transaction.atomic():
+                order = Order.objects.create(
+                    account      = request.user,
+                    order_number = uuid.uuid4(),
+                    status       = OrderStatus.objects.get(name="Pending")
+                )
+
+                for cart in carts:
+                    OrderItem.objects.create(
+                        order_id  = order.id,
+                        option_id = cart.option.id,
+                        quantity  = cart.quantity,
+                        status    = ItemStatus.objects.get(name="Pending")
                     )
 
-                    for cart in carts:
-                        OrderItem.objects.create(
-                            order_id  = order.id,
-                            option_id = cart.option.id,
-                            quantity  = cart.quantity,
-                            status    = ItemStatus.objects.get(name="Pending")
-                        )
+                    cart.option.stocks -= cart.quantity
+                    cart.option.sales  += cart.quantity
+                    cart.option.save()
 
-                        cart.option.stocks -= cart.quantity
-                        cart.option.sales  += cart.quantity
-                        cart.option.save()
+                carts.delete()
 
-                    carts.delete()
-
-                return JsonResponse({"message": "SUCCESS"}, status=200)
-
-            else:
-                return JsonResponse({"message": "EMPTY_CART"}, status=400)
+            return JsonResponse({"message": "SUCCESS"}, status=200)
 
         except IndexError:
             return JsonResponse({"message": "KEY_ERROR"}, status=400)
