@@ -1,12 +1,9 @@
-import json
+from django.views     import View
+from django.http      import JsonResponse
+from django.db.models import Q
+from django.db.models import Max, Min, Sum
 
-from django.views                import View
-from django.http                 import JsonResponse
-from django.db.models            import Q
-from django.db.models            import Max
-from django.db.models.aggregates import Min
-
-from products.models             import Category, Menu, Option, Product
+from products.models  import Category, Menu, Product
 
 class MenuView(View):
     def get(self, request):
@@ -22,7 +19,8 @@ class MenuView(View):
                         "category_name"        : category.name,
                         "category_image_url"   : category.image_url,
                         "category_description" : category.description
-                    } for category in menu.category_set.all()]
+                    } for category in menu.category_set.all()
+                ]
             }
 
         return JsonResponse({"results": results}, status=200)
@@ -31,12 +29,13 @@ class CategoryView(View):
     def get(self, request, category_id):
         try:
             category = Category.objects.get(id = category_id)
-            results = {"category_id"           : category.id,
-                       "category_name"         : category.name,
-                       "category_description"  : category.description,
-                       "category_image_url"    : category.image_url
+            results = {
+                "category_id"           : category.id,
+                "category_name"         : category.name,
+                "category_description"  : category.description,
+                "category_image_url"    : category.image_url
             }   
-            return JsonResponse({"results": results }, status=200)
+            return JsonResponse({"results": results}, status=200)
 
         except Category.DoesNotExist:
             return JsonResponse({"message": "INVALID_CATEGORY_ID"}, status=404)
@@ -44,55 +43,90 @@ class CategoryView(View):
 class ProductsView(View) :
     def get(self,request) :
         try :
-            category_id  = request.GET.get("id", 0)
+            category_id  = request.GET.get("category", 0)
             offset       = int(request.GET.get("offset",0))
             limit        = int(request.GET.get("limit",10))
-            sort_by      = request.GET.get("sort_by","price_desc")
+            sort_by      = request.GET.get("sort","price-descending")
             
             options = {
-                "price_desc"   : "option__price",
-                "price_asc"    : "option__price",
-                "sales_desc"   : "option__sales",
-                "sales_asc"    : "option__sales"
+                "price-descending"   : "-max_price",
+                "price-ascending"    : "min_price",
+                "sales-descending"   : "-total_sales",
+                "sales-ascending"    : "total_sales",
+                "score-descending"   : "-score",
+                "score-ascending"    : "score"
             }
 
-            offset = offset * limit
-            limit  = offset + limit
-
-            q = Q()
+            category = Category.objects.get(id=category_id)
             
-            if category_id:
-                q.add(Q(category__id=category_id),q.AND)
+            if category.name == "all":
+                q = Q()
+            elif category.name == "bestsellers":
+                q = Q(total_sales__gte=10000)
+            else:
+                q = Q(category__id=category_id)
+            
+            products = Product.objects.prefetch_related('option_set')\
+                .annotate(total_sales=Sum('option__sales'))\
+                .annotate(max_price=Max('option__price'))\
+                .annotate(min_price=Min('option__price'))\
+                .filter(q).order_by(options[sort_by])
 
-            productlist = [{"product_id"      : product.id,
-                            "product_name"    : product.name,
-                            "category_id"     : category_id,
-                            "descirption"     : product.description,
-                            "thumbnail"       : product.thumbnail_image_url,
-                            "hover_image"     : product.hover_image_url,
-                            "score"           : product.score,
-                            "sort_value"      : product.sort_value,
-                            "option"          : [{"price"  : option.price,
-                                                  "sales"  : option.sales,
-                                                  "weight" : option.weight,
-                                                  "stocks" : option.stocks} for option in Option.objects.filter(product = product.id)]         
-                            }
-                            for product in Product.objects.filter(q)\
-                            .annotate(sort_value= Max(options[sort_by]) if "desc" in sort_by else Min(options[sort_by]))\
-                                .order_by("-sort_value" if "desc" in sort_by else "sort_value")][offset:limit]
+            results = [
+                {
+                    "product_id"      : product.id,
+                    "product_name"    : product.name,
+                    "category_id"     : category_id,
+                    "descirption"     : product.description,
+                    "thumbnail"       : product.thumbnail_image_url,
+                    "hover_image"     : product.hover_image_url,
+                    "score"           : product.score,
+                    "option"          : [
+                        {
+                            "price"  : option.price,
+                            "sales"  : option.sales,
+                            "weight" : option.weight,
+                            "stocks" : option.stocks
+                        } for option in product.option_set.all()
+                    ]         
+                } for product in products[offset*limit:offset*limit+limit]
+            ] 
 
-            return JsonResponse({'MESSAGE':'SUCCESS', "results": productlist}, status=201)
+            return JsonResponse({"results": results}, status=200)
 
         except KeyError :
-            return JsonResponse({'MESSAGE':'KEY_ERROR'}, status=400)
+            return JsonResponse({"message": "KEY_ERROR"}, status=400)
+        
+        except Category.DoesNotExist:
+            return JsonResponse({"message": "INVALID_CATEGORY_ID"}, stautus=400)
 
 class ProductDetailView(View):
     def get(self, request, product_id):
-        current_product  = Product.objects.get(id = product_id)
+        current_product = Product.objects.select_related('nutrition')\
+            .prefetch_related('category', 'option_set', 'image_set', 'category__menu')\
+            .get(id=product_id)
 
-        nutrition = current_product.nutrition
+        current_category_dict = {}
+        for category in current_product.category.all():
+            current_category_dict[category.menu.name] = category
 
-        product = {
+        routine_products = [current_product]
+        compare_products = [current_product]
+
+        products = Product.objects.all().prefetch_related('category', 'option_set')
+
+        for product in products:
+            if current_category_dict["milk"] in product.category.all():
+                if current_category_dict["style"] not in product.category.all():
+                    routine_products.append(product)
+
+                elif current_category_dict["countries"] not in product.category.all():
+                    compare_products.append(product)
+
+            if len(routine_products) >= 3 and len(compare_products) >=3:
+                break
+
+        product_result = {
             'product_id'       : current_product.id,
             'product_name'     : current_product.name,
             'summary'          : current_product.summary,
@@ -110,25 +144,19 @@ class ProductDetailView(View):
             ],
             'option' : [
                 {
-                    "price"  : option.price,
-                    "weight" : option.weight,
-                    "option_id"    : option.id
+                    "price"     : option.price,
+                    "weight"    : option.weight,
+                    "option_id" : option.id
                 } for option in current_product.option_set.all()
             ],
             'nutrition' : [
                 {
-                    field.name : field.value_from_object(nutrition)
-                } for field in nutrition._meta.fields if field.name != "id"
+                    field.name : field.value_from_object(current_product.nutrition)
+                } for field in current_product.nutrition._meta.fields if field.name != "id"
             ]
         }
 
-        milk_category    = current_product.category.get(menu__name="milk")
-        style_category   = current_product.category.get(menu__name="style")
-        country_category = current_product.category.get(menu__name="countries")
-
-        routine_products = [current_product] + list(Product.objects.filter(category=milk_category).exclude(category=style_category)[:2])
-        
-        routine = [
+        routine_results = [
             {
                 'product_id'     : product.id,
                 'product_name'   : product.name,
@@ -142,11 +170,10 @@ class ProductDetailView(View):
                         "weight" : option.weight,
                         "id"     : option.id
                     } for option in product.option_set.all()]
-            } for product in routine_products]
+            } for product in routine_products[:3]
+        ]
 
-        compare_products = [current_product] + list(Product.objects.filter(category=milk_category).filter(category=style_category).exclude(category=country_category)[:2])
-
-        compare  = [
+        compare_results  = [
             {
                 'product_name'   : product.name,
                 'description'    : product.description,
@@ -156,13 +183,15 @@ class ProductDetailView(View):
                         "price" : option.price,
                         "weight": option.weight,
                         "id"    : option.id
-                    } for option in product.option_set.all()]
-            } for product in compare_products]
+                    } for option in product.option_set.all()
+                ]
+            } for product in compare_products[:3]
+        ]
 
         results = {
-            "product" : product,
-            "routine" : routine,
-            "compare" : compare
+            "product" : product_result,
+            "routine" : routine_results,
+            "compare" : compare_results
         }
             
         return JsonResponse ({"results": results}, status = 200)
