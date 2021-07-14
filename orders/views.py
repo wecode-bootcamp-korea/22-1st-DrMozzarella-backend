@@ -3,6 +3,7 @@ import uuid
 
 from django.http    import JsonResponse
 from django.views   import View
+from django.db      import transaction
 
 from orders.models  import Cart, Order, OrderItem, OrderStatus, ItemStatus
 from accounts.utils import user_validator
@@ -13,29 +14,31 @@ class OrderView(View):
         try:
             carts = Cart.objects.filter(account=request.user)
 
-            if carts:
-                order = Order.objects.create(
-                    account      = request.user,
-                    order_number = uuid.uuid4(),
-                    status       = OrderStatus.objects.get(name="Pending")
-                )
-                
+            if carts.exists():
                 for cart in carts:
                     if cart.quantity > cart.option.stocks:
-                        order.delete()
                         return JsonResponse({"messeage": "INVALID_QUANTITY"}, status=400)
 
-                    OrderItem.objects.create(
-                        order_id  = order.id,
-                        option_id = cart.option.id,
-                        quantity  = cart.quantity,
-                        status    = ItemStatus.objects.get(name="Pending")
+                with transaction.atomic():
+                    order = Order.objects.create(
+                        account      = request.user,
+                        order_number = uuid.uuid4(),
+                        status       = OrderStatus.objects.get(name="Pending")
                     )
-                    cart.option.stocks -= cart.quantity
-                    cart.option.sales  += cart.quantity
-                    cart.option.save()
-                
-                carts.delete()
+
+                    for cart in carts:
+                        OrderItem.objects.create(
+                            order_id  = order.id,
+                            option_id = cart.option.id,
+                            quantity  = cart.quantity,
+                            status    = ItemStatus.objects.get(name="Pending")
+                        )
+
+                        cart.option.stocks -= cart.quantity
+                        cart.option.sales  += cart.quantity
+                        cart.option.save()
+                    
+                    carts.delete()
 
                 return JsonResponse({"message": "SUCCESS"}, status=200)
 
@@ -70,23 +73,6 @@ class OrderView(View):
             } for order in orders]
 
         return JsonResponse({"results": results}, status=200)
-
-    @user_validator
-    def put(self, request, order_id):
-        try:
-            data  = json.loads(request.body)
-            order = Order.objects.get(id=order_id, account=request.user)
-            
-            order.status = OrderStatus.objects.get(name = data['order_status'])
-            order.save()
-            
-            return JsonResponse({"message": "SUCCESS"}, status=201)
-        
-        except Order.DoesNotExist:
-            return JsonResponse({"message": "INVALID_ORDER_ID"}, status=404)
-        
-        except KeyError:
-            return JsonResponse({"message": "KEY_ERROR"}, status=400)
 
     @user_validator
     def patch(self, request, order_id, order_item_id):
