@@ -54,7 +54,6 @@ class ProductDetailView(View):
                     "option_id"    : option.id
                 } for option in current_product.option_set.all()
             ],
-
             'nutrition' : [
                 {
                     field.name : field.value_from_object(nutrition)
