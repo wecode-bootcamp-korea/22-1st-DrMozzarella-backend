@@ -120,10 +120,16 @@ class OrderView(View):
                 return JsonResponse({"message": "SUCCESS"}, status=200)
 
             else:
-                return JsonResponse({"message":"EMPTY_CART"}, status=400)
+                return JsonResponse({"message": "EMPTY_CART"}, status=400)
 
         except IndexError:
-            return JsonResponse({"message":"KEY_ERROR"}, status=400)
+            return JsonResponse({"message": "KEY_ERROR"}, status=400)
+        
+        except OrderStatus.DoesNotExist:
+            return JsonResponse({"message": "INVALID_ORDER_STATUS"}, status=400)
+
+        except ItemStatus.DoesNotExist:
+            return JsonResponse({"message": "INVALID_ITEM_STATUS"}, status=400)
 
     @user_validator
     def get(self, request):
