@@ -114,7 +114,7 @@ class OrderView(View):
                         cart.option.stocks -= cart.quantity
                         cart.option.sales  += cart.quantity
                         cart.option.save()
-                    
+
                     carts.delete()
 
                 return JsonResponse({"message": "SUCCESS"}, status=200)
@@ -152,21 +152,35 @@ class OrderView(View):
         return JsonResponse({"results": results}, status=200)
 
     @user_validator
-    def patch(self, request, order_id, order_item_id):
+    def patch(self, request, order_id):
         try:
-            data       = json.loads(request.body)
-            order_item = OrderItem.objects.get(
-                id             = order_item_id,
-                order_id       = order_id,
-                order__account = request.user
-            )
-            order_item.status = ItemStatus.objects.get(name = data['item_status'])
-            order_item.save()
-            
+            data = json.loads(request.body)
+
+            with transaction.atomic():
+                order = Order.objects.get(id=order_id, account=request.user)
+
+                order.status = OrderStatus.objects.get(name = data['order_status'])
+                order.save()
+
+                for order_item in data['order_items']:
+                    item = order.orderitem_set.get(id=order_item['id'])
+
+                    item.status = ItemStatus.objects.get(name=order_item['status'])
+                    item.save()
+
             return JsonResponse({"message": "SUCCESS"}, status=201)
 
+        except Order.DoesNotExist:
+            return JsonResponse({"message": "INVALID_ORDER"}, status=404)
+
         except OrderItem.DoesNotExist:
-            return JsonResponse({"message": "INVALID_ITEM"}, status=404)
+            return JsonResponse({"message": "INVALID_ITEM"}, status=400)
+        
+        except OrderStatus.DoesNotExist:
+            return JsonResponse({"message": "INVALID_ORDER_STATUS"}, status=400)
+
+        except ItemStatus.DoesNotExist:
+            return JsonResponse({"message": "INVALID_ITEM_STATUS"}, status=400)
 
         except KeyError:
             return JsonResponse({"message": "KEY_ERROR"}, status=400)
