@@ -11,3 +11,4 @@ urlpatterns = [
     path("products" , include("products.urls")),
     path("categories/<int:category_id>", CategoryView.as_view())
 ]
+
