@@ -165,7 +165,7 @@ class OrderView(View):
             with transaction.atomic():
                 order = Order.objects.get(id=order_id, account=request.user)
 
-                order.status = OrderStatus.objects.get(name = data['order_status'])
+                order.status = OrderStatus.objects.get(name=data['order_status'])
                 order.save()
 
                 for order_item in data['order_items']:
