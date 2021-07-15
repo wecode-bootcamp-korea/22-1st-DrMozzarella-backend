@@ -3,8 +3,7 @@ import json
 from django.views                import View
 from django.http                 import JsonResponse
 from django.db.models            import Q
-from django.db.models            import Max
-from django.db.models.aggregates import Min
+from django.db.models            import Max, Min, Sum
 
 from products.models             import Category, Menu, Option, Product
 
@@ -31,10 +30,10 @@ class CategoryView(View):
     def get(self, request, category_id):
         try:
             category = Category.objects.get(id = category_id)
-            results = {"category_id"           : category.id,
-                       "category_name"         : category.name,
-                       "category_description"  : category.description,
-                       "category_image_url"    : category.image_url
+            results  = {"category_id"           : category.id,
+                        "category_name"         : category.name,
+                        "category_description"  : category.description,
+                        "category_image_url"    : category.image_url
             }   
             return JsonResponse({"results": results }, status=200)
 
@@ -44,47 +43,59 @@ class CategoryView(View):
 class ProductsView(View) :
     def get(self,request) :
         try :
-            category_id  = request.GET.get("id", 0)
+            category_id  = request.GET.get("category", 0)
             offset       = int(request.GET.get("offset",0))
             limit        = int(request.GET.get("limit",10))
-            sort_by      = request.GET.get("sort_by","price_desc")
-            
-            options = {
-                "price_desc"   : "option__price",
-                "price_asc"    : "option__price",
-                "sales_desc"   : "option__sales",
-                "sales_asc"    : "option__sales"
+            sort         = request.GET.get("sort","price-descending")
+            offset       = offset * limit
+            limit        = offset + limit           
+            options      = {
+                "price-descending" : "-max_price",
+                "price-ascending"  : "min_price",
+                "sales-descending" : "-total_sales",
+                "sales-ascending"  : "total_sales",
+                "score-descending" : "-score",
+                "score-ascending"  : "score"
             }
-
-            offset = offset * limit
-            limit  = offset + limit
-
-            q = Q()
+            category     = Category.objects.get(id = category_id)
             
-            if category_id:
-                q.add(Q(category__id=category_id),q.AND)
+            if category.name == "all":
+                q = Q()
+            
+            elif category.name == "bestsellers":
+                q = Q(total_sales__gte = 10000)
+            
+            else :
+                q = Q(category__id = category_id)
 
-            productlist = [{"product_id"      : product.id,
-                            "product_name"    : product.name,
-                            "category_id"     : category_id,
-                            "descirption"     : product.description,
-                            "thumbnail"       : product.thumbnail_image_url,
-                            "hover_image"     : product.hover_image_url,
-                            "score"           : product.score,
-                            "sort_value"      : product.sort_value,
-                            "option"          : [{"price"  : option.price,
-                                                  "sales"  : option.sales,
-                                                  "weight" : option.weight,
-                                                  "stocks" : option.stocks} for option in Option.objects.filter(product = product.id)]         
-                            }
-                            for product in Product.objects.filter(q)\
-                            .annotate(sort_value= Max(options[sort_by]) if "desc" in sort_by else Min(options[sort_by]))\
-                                .order_by("-sort_value" if "desc" in sort_by else "sort_value")][offset:limit]
+            products = Product.objects.prefetch_related('option_set').filter(q)\
+                        .annotate(max_price = Max('option__price'),min_price = Min('option__price'),total_sales = Sum('option__sales'))\
+                        .order_by(options[sort])[offset:limit]
 
-            return JsonResponse({'MESSAGE':'SUCCESS', "results": productlist}, status=201)
+            productlist = [{
+                    "product_id"   : product.id,
+                    "product_name" : product.name,
+                    "category_id"  : category_id,
+                    "description"  : product.description,
+                    "thumbnail"    : product.thumbnail_image_url,
+                    "hover_image"  : product.hover_image_url,
+                    "score"        : product.score,                
+                    "option"       : [{ 
+                                        "option_id" : option.id,
+                                        "price"     : option.price,
+                                        "sales"     : option.sales,
+                                        "weight"    : option.weight,
+                                        "stocks"    : option.stocks
+                                        } for option in  product.option_set.all()]                             
+                } for product in products]
+
+            return JsonResponse({"results": productlist}, status=200)
 
         except KeyError :
             return JsonResponse({'MESSAGE':'KEY_ERROR'}, status=400)
+
+        except Category.DoesNotExist:
+            return JsonResponse({"MESSAGE": "INVALID_CATEGORY_ID"}, status=400)
 
 class ProductDetailView(View):
     def get(self, request, product_id):
