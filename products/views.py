@@ -68,30 +68,23 @@ class ProductsView(View) :
             else :
                 q = Q(category__id = category_id)
 
-            products = Product.objects.annotate(max_price = Max('option__price')).annotate(min_price = Min('option__price'))\
-                .annotate(total_sales = Sum('option__sales')).filter(q).order_by(options[sort])
-            options  = Option.objects.all().select_related('product')
+            products = Product.objects.prefetch_related('option_set').filter(q)
 
-            productlist = [
-                {
-                    "product_id"        : product.id,
-                    "product_name"      : product.name,
-                    "category_id"       : category_id,
-                    "description"       : product.description,
-                    "thumbnail"         : product.thumbnail_image_url,
-                    "hover_image"       : product.hover_image_url,
-                    "score"             : product.score,                
-                    "option"            : [
-                        {
-                            "option_id" : option.id,
-                            "price"     : option.price,
-                            "sales"     : option.sales,
-                            "weight"    : option.weight,
-                            "stocks"    : option.stocks
-                        } for option in options if option.product_id == product.id
-                    ]         
-                } for product in products[offset:limit]
-            ]
+            productlist = [{
+                    "product_id"   : product.id,
+                    "product_name" : product.name,
+                    "category_id"  : category_id,
+                    "description"  : product.description,
+                    "thumbnail"    : product.thumbnail_image_url,
+                    "hover_image"  : product.hover_image_url,
+                    "score"        : product.score,                
+                    "option"       : [{ "option_id" : option["option__id"],
+                                        "price"     : option["option__price"],
+                                        "sales"     : option["option__sales"],
+                                        "weight"    : option["option__weight"],
+                                        "stocks"    : option["option__stocks"]} for option in  products.filter(id = product.id).values("option__id","option__price","option__sales","option__weight","option__stocks")]                             
+                } for product in products.annotate(max_price = Max('option__price'),min_price = Min('option__price'),total_sales = Sum('option__sales')).order_by(options[sort])[offset:limit]]
+
             return JsonResponse({"results": productlist}, status=200)
 
         except KeyError :
