@@ -92,18 +92,38 @@ class ProductsView(View) :
             return JsonResponse({"results": productlist}, status=200)
 
         except KeyError :
-            return JsonResponse({'MESSAGE':'KEY_ERROR'}, status=400)
+            return JsonResponse({"message": "KEY_ERROR"}, status=400)
+
+        except Category.DoesNotExist:
+            return JsonResponse({"message": "INVALID_CATEGORY_ID"}, stautus=400)
 
         except Category.DoesNotExist:
             return JsonResponse({"MESSAGE": "INVALID_CATEGORY_ID"}, status=400)
 
 class ProductDetailView(View):
     def get(self, request, product_id):
-        current_product  = Product.objects.get(id = product_id)
+        current_product = Product.objects.select_related('nutrition')\
+            .prefetch_related('category', 'option_set', 'image_set', 'category__menu')\
+            .get(id=product_id)
 
-        nutrition = current_product.nutrition
+        current_category_dict = {}
+        
+        for category in current_product.category.all():
+            current_category_dict[category.menu.name] = category
 
-        product = {
+        routine_products = [current_product]
+        compare_products = [current_product]
+
+        routine_products.extend(list(Product.objects\
+                            .filter(category=current_category_dict["milk"])\
+                            .exclude(category=current_category_dict["style"])\
+                            .prefetch_related('category', 'option_set')))
+        compare_products.extend(list(Product.objects\
+                            .filter(category=current_category_dict["milk"])\
+                            .filter(category=current_category_dict["style"])\
+                            .exclude(category=current_category_dict["countries"])))
+
+        product_result = {
             'product_id'       : current_product.id,
             'product_name'     : current_product.name,
             'summary'          : current_product.summary,
@@ -121,25 +141,19 @@ class ProductDetailView(View):
             ],
             'option' : [
                 {
-                    "price"  : option.price,
-                    "weight" : option.weight,
-                    "option_id"    : option.id
+                    "price"     : option.price,
+                    "weight"    : option.weight,
+                    "option_id" : option.id
                 } for option in current_product.option_set.all()
             ],
             'nutrition' : [
                 {
-                    field.name : field.value_from_object(nutrition)
-                } for field in nutrition._meta.fields if field.name != "id"
+                    field.name : field.value_from_object(current_product.nutrition)
+                } for field in current_product.nutrition._meta.fields if field.name != "id"
             ]
         }
 
-        milk_category    = current_product.category.get(menu__name="milk")
-        style_category   = current_product.category.get(menu__name="style")
-        country_category = current_product.category.get(menu__name="countries")
-
-        routine_products = [current_product] + list(Product.objects.filter(category=milk_category).exclude(category=style_category)[:2])
-        
-        routine = [
+        routine_results = [
             {
                 'product_id'     : product.id,
                 'product_name'   : product.name,
@@ -151,13 +165,12 @@ class ProductDetailView(View):
                     {
                         "price"  : option.price,
                         "weight" : option.weight,
-                        "id"     : option.id
+                        "option_id"     : option.id
                     } for option in product.option_set.all()]
-            } for product in routine_products]
+            } for product in routine_products[:3]
+        ]
 
-        compare_products = [current_product] + list(Product.objects.filter(category=milk_category).filter(category=style_category).exclude(category=country_category)[:2])
-
-        compare  = [
+        compare_results  = [
             {
                 'product_name'   : product.name,
                 'description'    : product.description,
@@ -166,14 +179,16 @@ class ProductDetailView(View):
                     {
                         "price" : option.price,
                         "weight": option.weight,
-                        "id"    : option.id
-                    } for option in product.option_set.all()]
-            } for product in compare_products]
+                        "option_id"    : option.id
+                    } for option in product.option_set.all()
+                ]
+            } for product in compare_products[:3]
+        ]
 
         results = {
-            "product" : product,
-            "routine" : routine,
-            "compare" : compare
+            "product" : product_result,
+            "routine" : routine_results,
+            "compare" : compare_results
         }
-            
+
         return JsonResponse ({"results": results}, status = 200)
