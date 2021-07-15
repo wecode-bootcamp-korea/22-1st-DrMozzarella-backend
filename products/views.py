@@ -68,7 +68,9 @@ class ProductsView(View) :
             else :
                 q = Q(category__id = category_id)
 
-            products = Product.objects.prefetch_related('option_set').filter(q)
+            products = Product.objects.prefetch_related('option_set').filter(q)\
+                        .annotate(max_price = Max('option__price'),min_price = Min('option__price'),total_sales = Sum('option__sales'))\
+                        .order_by(options[sort])[offset:limit]
 
             productlist = [{
                     "product_id"   : product.id,
@@ -78,12 +80,14 @@ class ProductsView(View) :
                     "thumbnail"    : product.thumbnail_image_url,
                     "hover_image"  : product.hover_image_url,
                     "score"        : product.score,                
-                    "option"       : [{ "option_id" : option["option__id"],
-                                        "price"     : option["option__price"],
-                                        "sales"     : option["option__sales"],
-                                        "weight"    : option["option__weight"],
-                                        "stocks"    : option["option__stocks"]} for option in  products.filter(id = product.id).values("option__id","option__price","option__sales","option__weight","option__stocks")]                             
-                } for product in products.annotate(max_price = Max('option__price'),min_price = Min('option__price'),total_sales = Sum('option__sales')).order_by(options[sort])[offset:limit]]
+                    "option"       : [{ 
+                                        "option_id" : option.id,
+                                        "price"     : option.price,
+                                        "sales"     : option.sales,
+                                        "weight"    : option.weight,
+                                        "stocks"    : option.stocks
+                                        } for option in  product.option_set.all()]                             
+                } for product in products]
 
             return JsonResponse({"results": productlist}, status=200)
 
