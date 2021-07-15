@@ -135,7 +135,7 @@ class ProductDetailView(View):
             'description'      : current_product.description,
             'score'            : current_product.score,
             'description_image': current_product.description_image_url,
-            'image_urls'       : [ image.image_url for image in current_product.image_set.all()],
+            'image_urls'       : [ image.image_url for image in current_product.image_set.all() ],
             'categories'       : [
                 {
                     "category_id"         : category.id,
