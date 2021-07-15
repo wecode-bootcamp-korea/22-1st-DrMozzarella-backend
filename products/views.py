@@ -74,19 +74,20 @@ class ProductsView(View) :
 
             productlist = [
                 {
-                    "product_id"     : product.id,
-                    "product_name"   : product.name,
-                    "category_id"    : category_id,
-                    "description"    : product.description,
-                    "thumbnail"      : product.thumbnail_image_url,
-                    "hover_image"    : product.hover_image_url,
-                    "score"          : product.score,                
-                    "option"         : [
+                    "product_id"        : product.id,
+                    "product_name"      : product.name,
+                    "category_id"       : category_id,
+                    "description"       : product.description,
+                    "thumbnail"         : product.thumbnail_image_url,
+                    "hover_image"       : product.hover_image_url,
+                    "score"             : product.score,                
+                    "option"            : [
                         {
-                            "price"  : option.price,
-                            "sales"  : option.sales,
-                            "weight" : option.weight,
-                            "stocks" : option.stocks
+                            "option_id" : option.id,
+                            "price"     : option.price,
+                            "sales"     : option.sales,
+                            "weight"    : option.weight,
+                            "stocks"    : option.stocks
                         } for option in options if option.product_id == product.id
                     ]         
                 } for product in products[offset:limit]
