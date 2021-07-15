@@ -32,11 +32,14 @@ class CartView(View):
 
             return JsonResponse({"message": "SUCCESS"}, status=201)
 
-        except IndexError:
-            return JsonResponse({"message": "INDEX_ERROR"}, status=400)
+        except KeyError:
+            return JsonResponse({"message": "KEY_ERROR"}, status=400)
+
+        except ValueError:
+            return JsonResponse({"message": "VALUE_ERROR"}, status=400)
 
         except Option.DoesNotExist:
-            return JsonResponse({"message": "INVALID"}, status=404)
+            return JsonResponse({"message": "INVALID_OPTION_ID"}, status=404)
 
     @user_validator
     def get(self, request):
