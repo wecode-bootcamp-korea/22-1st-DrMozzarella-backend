@@ -99,8 +99,6 @@ class ProductsView(View) :
         except Category.DoesNotExist:
             return JsonResponse({"message": "INVALID_CATEGORY_ID"}, stautus=400)
 
-
-
 class ProductDetailView(View):
     def get(self, request, product_id):
         current_product = Product.objects.select_related('nutrition')\
