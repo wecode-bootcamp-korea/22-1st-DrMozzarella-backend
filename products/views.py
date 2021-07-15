@@ -1,6 +1,6 @@
 from django.views     import View
 from django.http      import JsonResponse
-from django.db.models import Q, Min, Sum, Prefetch, query
+from django.db.models import Q, Min, Sum, Prefetch
 
 from products.models import Category, Menu, Option, Product
 
