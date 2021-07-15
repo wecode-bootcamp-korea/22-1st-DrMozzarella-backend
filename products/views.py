@@ -113,8 +113,15 @@ class ProductDetailView(View):
         routine_products = [current_product]
         compare_products = [current_product]
 
-        routine_products.extend(list(Product.objects.filter(category=current_category_dict["milk"]).exclude(category=current_category_dict["style"]).prefetch_related('category', 'option_set')))
-        compare_products.extend(list(Product.objects.filter(category=current_category_dict["milk"]).filter(category=current_category_dict["style"]).exclude(category=current_category_dict["countries"])))
+        routine_products.extend(list(Product.objects\
+                        .filter(category=current_category_dict["milk"])\
+                        .exclude(category=current_category_dict["style"])\
+                        .prefetch_related('category', 'option_set')))
+        compare_products.extend(list(Product.objects\
+                        .filter(category=current_category_dict["milk"])\
+                        .filter(category=current_category_dict["style"])\
+                        .exclude(category=current_category_dict["countries"])\
+                        .prefetch_related('category', 'option_set')))
 
         product_result = {
             'product_id'       : current_product.id,
