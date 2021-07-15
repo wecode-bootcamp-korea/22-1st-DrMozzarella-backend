@@ -15,9 +15,18 @@ class CartView(View):
     def post(self, request):
         try:
             data          = json.loads(request.body)
-            cart, created = Cart.objects.get_or_create(account=request.user, option=Option.objects.get(id=data['option_id']))
+            
+            option = Option.objects.get(id=data['option_id'])
 
+            if option.stocks <= 0:
+                return JsonResponse({"message": "INVALID_QUANTITY"}, status=409)
+
+            cart, created = Cart.objects.get_or_create(account=request.user, option=option)
+            
             if not created:
+                if cart.quantity + 1 > option.stocks:
+                    return JsonResponse({"message": "INVALID_QUANTITY"}, status=409)
+
                 cart.quantity += 1
                 cart.save()
 
@@ -60,6 +69,9 @@ class CartView(View):
                 return JsonResponse({"message": "INVALID_QUANTITY"}, status=409)
 
             cart = Cart.objects.get(account=request.user, option_id=option_id)
+
+            if data['quantity'] > cart.option.stocks:
+                return JsonResponse({"message": "INVALID_QUANTITY"}, status=409)
 
             cart.quantity = data['quantity']
             cart.save()
