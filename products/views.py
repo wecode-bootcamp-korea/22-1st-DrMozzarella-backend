@@ -106,24 +106,15 @@ class ProductDetailView(View):
             .get(id=product_id)
 
         current_category_dict = {}
+        
         for category in current_product.category.all():
             current_category_dict[category.menu.name] = category
 
         routine_products = [current_product]
         compare_products = [current_product]
 
-        products = Product.objects.all().prefetch_related('category', 'option_set')
-
-        for product in products:
-            if current_category_dict["milk"] in product.category.all():
-                if current_category_dict["style"] not in product.category.all():
-                    routine_products.append(product)
-
-                elif current_category_dict["countries"] not in product.category.all():
-                    compare_products.append(product)
-
-            if len(routine_products) >= 3 and len(compare_products) >=3:
-                break
+        routine_products.extend(list(Product.objects.filter(category=current_category_dict["milk"]).exclude(category=current_category_dict["style"]).prefetch_related('category', 'option_set')))
+        compare_products.extend(list(Product.objects.filter(category=current_category_dict["milk"]).filter(category=current_category_dict["style"]).exclude(category=current_category_dict["countries"])))
 
         product_result = {
             'product_id'       : current_product.id,
@@ -167,7 +158,7 @@ class ProductDetailView(View):
                     {
                         "price"  : option.price,
                         "weight" : option.weight,
-                        "id"     : option.id
+                        "option_id"     : option.id
                     } for option in product.option_set.all()]
             } for product in routine_products[:3]
         ]
@@ -181,7 +172,7 @@ class ProductDetailView(View):
                     {
                         "price" : option.price,
                         "weight": option.weight,
-                        "id"    : option.id
+                        "option_id"    : option.id
                     } for option in product.option_set.all()
                 ]
             } for product in compare_products[:3]
