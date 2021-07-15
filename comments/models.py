@@ -1,4 +1,4 @@
-from django.db import models
+from django.db                import models
 
 class Comment(models.Model):
     account    = models.ForeignKey('accounts.Account', on_delete=models.SET_NULL, null=True)
