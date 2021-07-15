@@ -50,7 +50,7 @@ class ProductsView(View) :
             offset       = offset * limit
             limit        = offset + limit           
             options      = {
-                "price-descending" : "-max_price",
+                "price-descending" : "-min_price",
                 "price-ascending"  : "min_price",
                 "sales-descending" : "-total_sales",
                 "sales-ascending"  : "total_sales",
@@ -69,7 +69,7 @@ class ProductsView(View) :
                 q = Q(category__id = category_id)
 
             products = Product.objects.prefetch_related('option_set').filter(q)\
-                        .annotate(max_price = Max('option__price'),min_price = Min('option__price'),total_sales = Sum('option__sales'))\
+                        .annotate(min_price = Min('option__price'),total_sales = Sum('option__sales'))\
                         .order_by(options[sort])[offset:limit]
 
             productlist = [{
